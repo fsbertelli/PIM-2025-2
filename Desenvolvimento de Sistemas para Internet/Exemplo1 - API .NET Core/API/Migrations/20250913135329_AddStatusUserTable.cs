@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace ClientesAPI.Migrations
+namespace API.Migrations
 {
     /// <inheritdoc />
     public partial class AddStatusUserTable : Migration

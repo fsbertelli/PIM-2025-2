@@ -1,8 +1,8 @@
-using ClientesAPI.Data;
-using ClientesAPI.Models;
+using API.Data;
+using API.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace ClientesAPI.Endpoints;
+namespace API.Endpoints;
 
 public static class ProfileEndpoints
 {

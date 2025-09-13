@@ -1,5 +1,5 @@
-using ClientesAPI.Data;
-using ClientesAPI.Endpoints;
+using API.Data;
+using API.Endpoints;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
@@ -25,7 +25,7 @@ app.UseHttpsRedirection();
 
 app.MapGet("/info", () => new {
     Solucao = "CadClientes",
-    Projeto = "ClientesAPI",
+    Projeto = "API",
     VersaoDotNet = "9.0.304",
     Autor = "Alunos",
     Data = DateTime.Now.ToString("yyyy-MM-dd")

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ClientesAPI.Models;
+namespace API.Models;
 
 public class Profile
 {
