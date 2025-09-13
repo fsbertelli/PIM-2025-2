@@ -31,7 +31,9 @@ app.MapGet("/info", () => new {
     Data = DateTime.Now.ToString("yyyy-MM-dd")
 });
 
-// Mapeia os endpoints de Clientes
+// Mapeia os endpoints da API
 app.MapClienteEndpoints();
+app.MapStatusUserEndpoints();
+app.MapProfileEndpoints();
 
 app.Run();
