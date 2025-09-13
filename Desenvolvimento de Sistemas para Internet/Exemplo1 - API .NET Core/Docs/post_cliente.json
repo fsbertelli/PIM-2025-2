@@ -1,0 +1,10 @@
+{
+  "nome": "José da Silva",
+  "endereco": "Rua das Flores, 123",
+  "dataDeNascimento": "1990-05-15T00:00:00",
+  "cep": "12345-678",
+  "cidade": "São Paulo",
+  "cpf": "123.456.789-00",
+  "foto": "https://example.com/fotos/jose.jpg",
+  "sexo": "Masculino"
+}

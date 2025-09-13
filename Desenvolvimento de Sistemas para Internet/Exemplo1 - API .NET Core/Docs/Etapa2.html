@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etapa 2: Criando uma Rota de Teste e Conceitos de API RESTful</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        pre {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Etapa 2: Criando uma Rota de Teste e Conceitos de API RESTful</h1>
+        <p>Nesta etapa, vamos adicionar uma rota de teste (endpoint) à nossa API para verificar se tudo está funcionando e para retornar informações básicas sobre o projeto. Além disso, vamos explorar os conceitos fundamentais de APIs RESTful.</p>
+
+        <h2>O que é uma API RESTful?</h2>
+        <p>Uma <strong>API (Application Programming Interface)</strong> é um conjunto de regras e definições que permite que diferentes aplicações se comuniquem entre si. <strong>REST (Representational State Transfer)</strong> é um estilo de arquitetura de software que define um conjunto de restrições para a criação de APIs.</p>
+        <p>Uma API que segue os princípios do REST é chamada de <strong>RESTful</strong>. Suas principais características são:</p>
+        <ul>
+            <li><strong>Arquitetura Cliente-Servidor:</strong> A interface do usuário (cliente) é separada do armazenamento de dados (servidor), permitindo que evoluam de forma independente.</li>
+            <li><strong>Stateless (Sem Estado):</strong> Cada requisição do cliente para o servidor deve conter toda a informação necessária para ser compreendida e processada. O servidor não armazena nenhum estado sobre o cliente entre as requisições.</li>
+            <li><strong>Cacheable:</strong> As respostas do servidor devem, implicitamente ou explicitamente, definir-se como cacheáveis ou não, para que o cliente possa reutilizar respostas para requisições futuras, melhorando a performance.</li>
+            <li><strong>Interface Uniforme:</strong> Esta é a restrição fundamental do REST e é composta por quatro princípios:
+                <ul>
+                    <li><strong>Identificação de Recursos:</strong> Os recursos (por exemplo, um cliente, um produto) são identificados por URIs (Uniform Resource Identifiers), como <code>/clientes/123</code>.</li>
+                    <li><strong>Manipulação de Recursos Através de Representações:</strong> O cliente interage com uma representação do recurso (geralmente em formato JSON ou XML), não com o recurso em si.</li>
+                    <li><strong>Mensagens Autodescritivas:</strong> Cada mensagem inclui informação suficiente para descrever como processá-la (ex: usando Media Types como <code>application/json</code>).</li>
+                    <li><strong>HATEOAS (Hypermedia as the Engine of Application State):</strong> As respostas do servidor devem conter links que guiem o cliente para as próximas ações possíveis.</li>
+                </ul>
+            </li>
+            <li><strong>Sistema em Camadas:</strong> Um cliente não consegue dizer se está conectado diretamente ao servidor final ou a um intermediário ao longo do caminho.</li>
+        </ul>
+        <p>Em resumo, APIs RESTful usam os métodos do protocolo HTTP (GET, POST, PUT, DELETE, etc.) para operar sobre os recursos, tornando a comunicação padronizada e previsível.</p>
+
+        <h2>Passos para Criar a Rota de Teste</h2>
+
+        <h3>1. Adicionando um Endpoint GET</h3>
+        <p>Para criar nossa rota de teste, editamos o arquivo <code>Program.cs</code> e adicionamos um novo endpoint usando o método <code>MapGet()</code>. Este método mapeia requisições HTTP GET para um determinado caminho (URI).</p>
+        <p>Nossa rota será <code>/info</code> e retornará um objeto anônimo com informações do projeto em formato JSON.</p>
+
+        <h4>Conteúdo Final de <code>Program.cs</code></h4>
+        <pre><code class="language-csharp">
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
+
+app.UseHttpsRedirection();
+
+app.MapGet("/info", () => new {
+    Solucao = "CadClientes",
+    Projeto = "ClientesAPI",
+    VersaoDotNet = "9.0.304",
+    Autor = "Alunos",
+    Data = DateTime.Now.ToString("yyyy-MM-dd")
+});
+
+app.Run();
+        </code></pre>
+
+        <h3>2. Testando a Rota</h3>
+        <p>Com a aplicação em execução, você pode acessar a URL <code>https://localhost:&lt;porta&gt;/info</code> em seu navegador ou em uma ferramenta como o Postman. A resposta deverá ser um JSON com as informações que definimos.</p>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

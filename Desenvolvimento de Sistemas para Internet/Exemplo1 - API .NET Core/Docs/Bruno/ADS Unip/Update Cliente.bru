@@ -1,0 +1,26 @@
+meta {
+  name: Update Cliente
+  type: http
+  seq: 4
+}
+
+put {
+  url: http://localhost:5185/clientes/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "id": 1,
+    "nome": "Maria da Silva Sauro",
+    "endereco": "Avenida Principal, 456",
+    "dataDeNascimento": "1992-08-20T00:00:00",
+    "cep": "87654-321",
+    "cidade": "Rio de Janeiro",
+    "cpf": "009.876.543-21",
+    "foto": "https://example.com/fotos/maria_nova.jpg",
+    "sexo": "Feminino"
+  }
+  
+}

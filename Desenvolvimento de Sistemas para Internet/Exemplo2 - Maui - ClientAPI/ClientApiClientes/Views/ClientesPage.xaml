@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:ClientApiClientes.Models"
+             x:Class="ClientApiClientes.Views.ClientesPage"
+             Title="Clientes">
+
+    <Grid RowDefinitions="*, Auto" Padding="10">
+
+        <Button Text="⚙️ Configurações da API" 
+                Clicked="SettingsButton_Clicked" 
+                HorizontalOptions="End" 
+                VerticalOptions="Start" 
+                Margin="5" />
+
+        <ScrollView Grid.Row="0" Margin="0,50,0,0">
+            <VerticalStackLayout x:Name="ClientesList" 
+                                 BindableLayout.ItemsSource="{Binding .}"
+                                 Spacing="10">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="models:Cliente">
+                        <Frame Padding="15" CornerRadius="10" BorderColor="LightGray" HasShadow="True">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <VerticalStackLayout Grid.Column="0" Spacing="5">
+                                    <Label Text="{Binding Nome}" FontSize="18" FontAttributes="Bold" />
+                                    <Label Text="{Binding CPF}" FontSize="14" TextColor="Gray" />
+                                    <Label Text="{Binding Cidade}" FontSize="14" TextColor="Gray" />
+                                </VerticalStackLayout>
+
+                                <HorizontalStackLayout Grid.Column="1" Spacing="5" VerticalOptions="Center">
+                                    <Button Text="Editar" 
+                                            Clicked="EditButton_Clicked_Item" 
+                                            CommandParameter="{Binding .}" 
+                                            FontSize="12" />
+                                    <Button Text="Excluir" 
+                                            Clicked="DeleteButton_Clicked_Item" 
+                                            CommandParameter="{Binding .}" 
+                                            BackgroundColor="#E74C3C" 
+                                            FontSize="12" />
+                                </HorizontalStackLayout>
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Button Grid.Row="0"
+                Text="+"
+                Clicked="AdicionarButton_Clicked"
+                CornerRadius="30"
+                HeightRequest="60"
+                WidthRequest="60"
+                FontSize="24"
+                FontAttributes="Bold"
+                HorizontalOptions="End"
+                VerticalOptions="End"
+                Margin="20" />
+
+    </Grid>
+</ContentPage>

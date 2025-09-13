@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etapa 3: Model, Banco de Dados e CRUD</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { font-size: 1.1rem; }
+        pre {
+            background-color: #282c34; /* Cor de fundo escura para código */
+            color: #abb2bf; /* Cor de texto clara */
+            border: 1px solid #dee2e6;
+            border-radius: 0.35rem;
+            padding: 1rem;
+            white-space: pre-wrap;       /* Quebra de linha */
+            word-wrap: break-word;      /* Quebra de palavra */
+        }
+        .comando {
+            background-color: #e9ecef;
+            color: #212529;
+            font-family: monospace;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.2rem;
+        }
+        .destaque-arquivo {
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        h2, h3 {
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5 mb-5">
+        <h1>Etapa 3: Criando o Model, Configurando o Banco de Dados e as Rotas CRUD</h1>
+        <p class="lead">Nesta etapa crucial, transformamos nossa API em um sistema funcional, capaz de armazenar e manipular dados. Vamos criar a estrutura para um cadastro de clientes, configurar um banco de dados SQLite com Entity Framework Core e expor as operações básicas (CRUD) através de novos endpoints.</p>
+
+        <!-- PASSO 1: PACOTES -->
+        <h2>Passo 1: Instalando as Dependências (Entity Framework Core)</h2>
+        <p>Para conectar nossa API a um banco de dados, usamos o <strong>Entity Framework Core (EF Core)</strong>, um mapeador objeto-relacional (O/RM) que simplifica o acesso a dados. Precisamos de 3 pacotes principais:</p>
+        <ul>
+            <li><strong>Microsoft.EntityFrameworkCore.Sqlite:</strong> O provedor que permite ao EF Core se comunicar com um banco de dados SQLite.</li>
+            <li><strong>Microsoft.EntityFrameworkCore.Design:</strong> Contém a lógica que as ferramentas de linha de comando precisam para criar o banco de dados a partir do nosso código (as famosas "migrations").</li>
+            <li><strong>Microsoft.EntityFrameworkCore.Tools:</strong> As próprias ferramentas de linha de comando (ex: <span class="comando">dotnet ef</span>).</li>
+        </ul>
+        <p>Executamos os seguintes comandos no terminal:</p>
+        <pre><code class="language-bash">dotnet add ClientesAPI/ClientesAPI.csproj package Microsoft.EntityFrameworkCore.Sqlite
+dotnet add ClientesAPI/ClientesAPI.csproj package Microsoft.EntityFrameworkCore.Design
+dotnet add ClientesAPI/ClientesAPI.csproj package Microsoft.EntityFrameworkCore.Tools</code></pre>
+
+        <!-- PASSO 2: MODEL -->
+        <h2>Passo 2: Criando o Modelo de Dados (Cliente.cs)</h2>
+        <p>Um "Model" é uma classe C# que representa a estrutura de uma tabela no banco de dados. Criamos uma nova pasta <span class="destaque-arquivo">Models</span> e, dentro dela, o arquivo <span class="destaque-arquivo">Cliente.cs</span>.</p>
+        <pre><code class="language-csharp">// Local: ClientesAPI/Models/Cliente.cs
+
+using System.ComponentModel.DataAnnotations;
+
+namespace ClientesAPI.Models;
+
+public class Cliente
+{
+    [Key] // Define que Id é a chave primária
+    public int Id { get; set; }
+
+    [Required(ErrorMessage = "O nome é obrigatório.")]
+    [StringLength(100, ErrorMessage = "O nome deve ter no máximo 100 caracteres.")]
+    public string? Nome { get; set; }
+
+    [StringLength(200, ErrorMessage = "O endereço deve ter no máximo 200 caracteres.")]
+    public string? Endereco { get; set; }
+
+    public DateTime DataDeNascimento { get; set; }
+
+    [StringLength(9, ErrorMessage = "O CEP deve ter no máximo 9 caracteres.")]
+    public string? CEP { get; set; }
+
+    [StringLength(100, ErrorMessage = "A cidade deve ter no máximo 100 caracteres.")]
+    public string? Cidade { get; set; }
+
+    [Required(ErrorMessage = "O CPF é obrigatório.")]
+    [StringLength(14, ErrorMessage = "O CPF deve ter no máximo 14 caracteres.")]
+    public string? CPF { get; set; }
+
+    public string? Foto { get; set; } // URL para a foto
+
+    [StringLength(20, ErrorMessage = "O sexo deve ter no máximo 20 caracteres.")]
+    public string? Sexo { get; set; }
+}
+</code></pre>
+        <div class="alert alert-info"><strong>Dica:</strong> Os atributos como <span class="comando">[Key]</span>, <span class="comando">[Required]</span> e <span class="comando">[StringLength]</span> são chamados de <em>Data Annotations</em>. Eles ajudam o EF Core a criar o banco e também a validar os dados que chegam na API.</div>
+
+        <!-- PASSO 3: DBCONTEXT -->
+        <h2>Passo 3: Criando o Contexto do Banco (AppDbContext.cs)</h2>
+        <p>O DbContext é a ponte entre nosso código e o banco de dados. Ele representa uma sessão com o banco. Criamos a pasta <span class="destaque-arquivo">Data</span> e o arquivo <span class="destaque-arquivo">AppDbContext.cs</span>.</p>
+        <pre><code class="language-csharp">// Local: ClientesAPI/Data/AppDbContext.cs
+
+using ClientesAPI.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace ClientesAPI.Data;
+
+public class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions&lt;AppDbContext&gt; options) : base(options) { }
+
+    // Mapeia a classe Cliente para uma tabela chamada "Clientes" no banco
+    public DbSet&lt;Cliente&gt; Clientes { get; set; }
+}
+</code></pre>
+
+        <!-- PASSO 4: CONFIGURACAO -->
+        <h2>Passo 4: Configurando a Conexão</h2>
+        <p>Primeiro, adicionamos a "string de conexão" no arquivo <span class="destaque-arquivo">appsettings.json</span>. Ela simplesmente aponta para um arquivo local que será nosso banco.</p>
+        <pre><code class="language-json">// Local: ClientesAPI/appsettings.json
+
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Data Source=clientes.db"
+  },
+  "Logging": { ... },
+  "AllowedHosts": "*"
+}
+</code></pre>
+        <p>Depois, registramos o DbContext no <span class="destaque-arquivo">Program.cs</span> para que a API saiba como criá-lo e usá-lo (injeção de dependência).</p>
+        <pre><code class="language-csharp">// Local: ClientesAPI/Program.cs
+
+using ClientesAPI.Data;
+using ClientesAPI.Endpoints;
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// --- INÍCIO DA CONFIGURAÇÃO DO EF CORE ---
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext&lt;AppDbContext&gt;(options => options.UseSqlite(connectionString));
+// --- FIM DA CONFIGURAÇÃO DO EF CORE ---
+
+builder.Services.AddOpenApi();
+// ... resto do arquivo
+</code></pre>
+
+        <!-- PASSO 5: ROTAS -->
+        <h2>Passo 5: Criando as Rotas CRUD em um Arquivo Separado</h2>
+        <p>Para manter o <span class="destaque-arquivo">Program.cs</span> limpo, criamos a pasta <span class="destaque-arquivo">Endpoints</span> e o arquivo <span class="destaque-arquivo">ClienteEndpoints.cs</span> para conter toda a lógica das novas rotas.</p>
+        <pre><code class="language-csharp">// Local: ClientesAPI/Endpoints/ClienteEndpoints.cs
+
+using ClientesAPI.Data;
+using ClientesAPI.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace ClientesAPI.Endpoints;
+
+public static class ClienteEndpoints
+{
+    public static void MapClienteEndpoints(this IEndpointRouteBuilder app)
+    {
+        // Rota para obter todos os clientes
+        app.MapGet("/clientes", async (AppDbContext db) => await db.Clientes.ToListAsync());
+
+        // Rota para obter um cliente por ID
+        app.MapGet("/clientes/{id}", async (int id, AppDbContext db) => 
+            await db.Clientes.FindAsync(id) is Cliente c ? Results.Ok(c) : Results.NotFound());
+
+        // Rota para criar um novo cliente
+        app.MapPost("/clientes", async (Cliente cliente, AppDbContext db) =>
+        {
+            db.Clientes.Add(cliente);
+            await db.SaveChangesAsync();
+            return Results.Created($"/clientes/{cliente.Id}", cliente);
+        });
+
+        // Rota para atualizar um cliente existente
+        app.MapPut("/clientes/{id}", async (int id, Cliente input, AppDbContext db) =>
+        {
+            var cliente = await db.Clientes.FindAsync(id);
+            if (cliente is null) return Results.NotFound();
+
+            cliente.Nome = input.Nome; // Atualiza os campos
+            // ... (outros campos)
+
+            await db.SaveChangesAsync();
+            return Results.NoContent();
+        });
+
+        // Rota para deletar um cliente
+        app.MapDelete("/clientes/{id}", async (int id, AppDbContext db) =>
+        {
+            var cliente = await db.Clientes.FindAsync(id);
+            if (cliente is null) return Results.NotFound();
+
+            db.Clientes.Remove(cliente);
+            await db.SaveChangesAsync();
+            return Results.Ok(cliente);
+        });
+    }
+}
+</code></pre>
+        <p>Finalmente, ativamos essas rotas no <span class="destaque-arquivo">Program.cs</span>:</p>
+        <pre><code class="language-csharp">// Local: ClientesAPI/Program.cs
+
+// ... (outras configurações)
+var app = builder.Build();
+
+// ...
+
+app.MapGet("/info", ...);
+
+// Ativa as rotas de clientes que criamos no arquivo separado
+app.MapClienteEndpoints();
+
+app.Run();
+</code></pre>
+
+        <!-- PASSO 6: MIGRATIONS -->
+        <h2>Passo 6: Criando o Banco de Dados com as Migrations</h2>
+        <p>Com o código pronto, usamos os seguintes comandos para criar o banco:</p>
+        <p><strong>1. Criar a Migração:</strong> Este comando lê o `DbContext` e os `Models` e gera um arquivo com o código C# para criar o esquema do banco.</p>
+        <pre><code class="language-bash">dotnet ef migrations add InitialCreate --project ClientesAPI</code></pre>
+        <p><strong>2. Atualizar o Banco:</strong> Este comando executa a migração, criando o arquivo <span class="comando">clientes.db</span> e as tabelas.</p>
+        <pre><code class="language-bash">dotnet ef database update --project ClientesAPI</code></pre>
+        <p>Após esses comandos, um arquivo <span class="destaque-arquivo">clientes.db</span> e uma pasta <span class="destaque-arquivo">Migrations</span> aparecerão no seu projeto!</p>
+
+        <!-- PASSO 7: TESTANDO -->
+        <h2>Passo 7: Testando as Novas Rotas</h2>
+        <p>Com a API em execução, você pode usar uma ferramenta como o Postman, Insomnia ou o próprio arquivo <span class="comando">.http</span> do Visual Studio Code para testar os endpoints:</p>
+        <ul>
+            <li><span class="badge bg-success">POST</span> <span class="comando">/clientes</span> - Cria um novo cliente. Envie um JSON no corpo da requisição.</li>
+            <li><span class="badge bg-primary">GET</span> <span class="comando">/clientes</span> - Lista todos os clientes.</li>
+            <li><span class="badge bg-primary">GET</span> <span class="comando">/clientes/{id}</span> - Busca um cliente específico.</li>
+            <li><span class="badge bg-warning text-dark">PUT</span> <span class="comando">/clientes/{id}</span> - Atualiza um cliente. Envie um JSON no corpo.</li>
+            <li><span class="badge bg-danger">DELETE</span> <span class="comando">/clientes/{id}</span> - Remove um cliente.</li>
+        </ul>
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

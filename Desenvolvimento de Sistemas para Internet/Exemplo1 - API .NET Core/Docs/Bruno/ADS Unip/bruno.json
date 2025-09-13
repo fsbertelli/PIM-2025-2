@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "ADS Unip",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

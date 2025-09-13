@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ClientApiClientes.Views.CreateCliente"
+             Title="Dados do Cliente">
+    <ScrollView>
+        <VerticalStackLayout Spacing="10" Padding="20">
+
+            <Label Text="Nome Completo" />
+            <Entry x:Name="NomeEntry" Placeholder="Digite o nome completo" />
+
+            <Label Text="CPF" />
+            <Entry x:Name="CpfEntry" Placeholder="000.000.000-00" Keyboard="Numeric" />
+
+            <Label Text="Data de Nascimento" />
+            <DatePicker x:Name="DataNascimentoPicker" />
+
+            <Label Text="Sexo" />
+            <Picker x:Name="SexoPicker" Title="Selecione o sexo">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Masculino</x:String>
+                        <x:String>Feminino</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+
+            <Label Text="Endereço" />
+            <Entry x:Name="EnderecoEntry" Placeholder="Rua, número, bairro" />
+
+            <Label Text="CEP" />
+            <Entry x:Name="CepEntry" Placeholder="00000-000" Keyboard="Numeric" />
+
+            <Label Text="Cidade" />
+            <Entry x:Name="CidadeEntry" Placeholder="Digite a cidade" />
+
+            <Label Text="URL da Foto" />
+            <Entry x:Name="FotoEntry" Placeholder="https://exemplo.com/foto.png" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,20,0,0">
+                <Button Grid.Column="0" Text="Salvar" Clicked="SalvarButton_Clicked" />
+                <Button Grid.Column="1" Text="Cancelar" Clicked="CancelarButton_Clicked" BackgroundColor="Gray"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
