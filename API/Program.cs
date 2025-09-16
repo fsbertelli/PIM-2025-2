@@ -11,8 +11,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
+builder.Services.AddSwaggerGen();
+    
 var app = builder.Build();
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -24,17 +28,17 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapGet("/info", () => new {
-    Solucao = "CadClientes",
-    Projeto = "API",
-    VersaoDotNet = "9.0.304",
-    Autor = "Alunos",
-    Data = DateTime.Now.ToString("yyyy-MM-dd")
+    Solucao = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name,
+    Projeto = "PIM 2025.2",
+    VersaoDotNet = System.Environment.Version.ToString(),
+    Autor = "Felipe Bertelli",
+    Data = DateTime.Now.ToString("dd-MM-yyyy")
 });
 
-// Mapeia os endpoints da API
 app.MapUserEndpoints();
-app.MapStatusUserEndpoints();
-app.MapProfileEndpoints();
+app.MapUserDtoEndpoints();
+app.MapUserStatusEndpoints();
+app.MapUserProfileEndpoints();
 app.MapDeptsEndpoints();
 
 app.Run();

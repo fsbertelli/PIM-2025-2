@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace API.Models;
 
-public class Users
+public class User
 {
     [Key]
     public int Id { get; set; }
@@ -24,14 +24,13 @@ public class Users
     
     [ForeignKey("Dept") ]
     public int DeptId { get; set; }
-    public Dept? Dept { get; set; }
+    public required Department Department { get; set; }
     
-    [ForeignKey("StatusUser") ]
-    public int StatusUserId { get; set; }
-    public StatusUser? StatusUser { get; set; }
+    [ForeignKey("UserStaus") ]
+    public int UserStatusId { get; set; }
+    public required UserStatus UserStatus { get; set; }
     
     [ForeignKey("Profile") ]
     public int ProfileId { get; set; }
-    public Profile? Profile { get; set; }
-    
+    public required UserProfile UserProfile { get; set; }
 }

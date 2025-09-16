@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250914231210_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250916153458_FixUserNameColumn")]
+    partial class FixUserNameColumn
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -19,10 +19,13 @@ namespace API.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
 
-            modelBuilder.Entity("API.Models.Dept", b =>
+            modelBuilder.Entity("API.Models.Department", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("AcceptTicket")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
@@ -30,50 +33,18 @@ namespace API.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("acceptTicket")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
-                    b.ToTable("Depts");
+                    b.ToTable("Departments");
                 });
 
-            modelBuilder.Entity("API.Models.Profile", b =>
+            modelBuilder.Entity("API.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Perfil")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Profiles");
-                });
-
-            modelBuilder.Entity("API.Models.StatusUser", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("StatusUsers");
-                });
-
-            modelBuilder.Entity("API.Models.Users", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("DepartmentId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("DeptId")
@@ -96,45 +67,80 @@ namespace API.Migrations
                         .HasMaxLength(12)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("StatusUserId")
+                    b.Property<int>("UserProfileId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UserStatusId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DeptId");
+                    b.HasIndex("DepartmentId");
 
-                    b.HasIndex("ProfileId");
+                    b.HasIndex("UserProfileId");
 
-                    b.HasIndex("StatusUserId");
+                    b.HasIndex("UserStatusId");
 
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("API.Models.Users", b =>
+            modelBuilder.Entity("API.Models.UserProfile", b =>
                 {
-                    b.HasOne("API.Models.Dept", "Dept")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserProfiles");
+                });
+
+            modelBuilder.Entity("API.Models.UserStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserStatus");
+                });
+
+            modelBuilder.Entity("API.Models.User", b =>
+                {
+                    b.HasOne("API.Models.Department", "Department")
                         .WithMany()
-                        .HasForeignKey("DeptId")
+                        .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("API.Models.Profile", "Profile")
+                    b.HasOne("API.Models.UserProfile", "UserProfile")
                         .WithMany()
-                        .HasForeignKey("ProfileId")
+                        .HasForeignKey("UserProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("API.Models.StatusUser", "StatusUser")
+                    b.HasOne("API.Models.UserStatus", "UserStatus")
                         .WithMany()
-                        .HasForeignKey("StatusUserId")
+                        .HasForeignKey("UserStatusId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Dept");
+                    b.Navigation("Department");
 
-                    b.Navigation("Profile");
+                    b.Navigation("UserProfile");
 
-                    b.Navigation("StatusUser");
+                    b.Navigation("UserStatus");
                 });
 #pragma warning restore 612, 618
         }

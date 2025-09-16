@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace API.Models;
 
-public class Dept
+public class Department
 {
     [Key] public int Id { get; set; }
     
@@ -10,5 +10,5 @@ public class Dept
     [StringLength(50, ErrorMessage = "Nome deve ter no máximo 50 caracteres.")]
     public string? Name { get; set; }
     
-    public bool acceptTicket { get; set; }
+    public bool AcceptTicket { get; set; }
 }

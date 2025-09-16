@@ -5,13 +5,13 @@
 namespace API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Depts",
+                name: "Departments",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -21,24 +21,24 @@ namespace API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Depts", x => x.Id);
+                    table.PrimaryKey("PK_Departments", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Profiles",
+                name: "UserProfiles",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Perfil = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false)
+                    Profile = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Profiles", x => x.Id);
+                    table.PrimaryKey("PK_UserProfiles", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "StatusUsers",
+                name: "UserStatus",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -47,7 +47,7 @@ namespace API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StatusUsers", x => x.Id);
+                    table.PrimaryKey("PK_UserStatus", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -67,21 +67,21 @@ namespace API.Migrations
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Users_Depts_DeptId",
+                        name: "FK_Users_Departments_DeptId",
                         column: x => x.DeptId,
-                        principalTable: "Depts",
+                        principalTable: "Departments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Users_Profiles_ProfileId",
+                        name: "FK_Users_UserProfiles_ProfileId",
                         column: x => x.ProfileId,
-                        principalTable: "Profiles",
+                        principalTable: "UserProfiles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Users_StatusUsers_StatusUserId",
+                        name: "FK_Users_UserStatus_StatusUserId",
                         column: x => x.StatusUserId,
-                        principalTable: "StatusUsers",
+                        principalTable: "UserStatus",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -109,13 +109,13 @@ namespace API.Migrations
                 name: "Users");
 
             migrationBuilder.DropTable(
-                name: "Depts");
+                name: "Departments");
 
             migrationBuilder.DropTable(
-                name: "Profiles");
+                name: "UserProfiles");
 
             migrationBuilder.DropTable(
-                name: "StatusUsers");
+                name: "UserStatus");
         }
     }
 }

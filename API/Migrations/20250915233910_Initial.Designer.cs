@@ -2,6 +2,7 @@
 using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250915233910_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -22,13 +25,13 @@ namespace API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("AcceptTicket")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("acceptTicket")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -39,9 +42,6 @@ namespace API.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("DepartmentId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("DeptId")
@@ -64,19 +64,16 @@ namespace API.Migrations
                         .HasMaxLength(12)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("UserProfileId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("UserStatusId")
+                    b.Property<int>("StatusUserId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DepartmentId");
+                    b.HasIndex("DeptId");
 
-                    b.HasIndex("UserProfileId");
+                    b.HasIndex("ProfileId");
 
-                    b.HasIndex("UserStatusId");
+                    b.HasIndex("StatusUserId");
 
                     b.ToTable("Users");
                 });
@@ -87,7 +84,7 @@ namespace API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Profile")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
@@ -103,7 +100,7 @@ namespace API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
@@ -115,29 +112,29 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Models.User", b =>
                 {
-                    b.HasOne("API.Models.Department", "Department")
+                    b.HasOne("API.Models.Department", "Dept")
                         .WithMany()
-                        .HasForeignKey("DepartmentId")
+                        .HasForeignKey("DeptId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("API.Models.UserProfile", "UserProfile")
+                    b.HasOne("API.Models.UserProfile", "Profile")
                         .WithMany()
-                        .HasForeignKey("UserProfileId")
+                        .HasForeignKey("ProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("API.Models.UserStatus", "UserStatus")
+                    b.HasOne("API.Models.UserStatus", "StatusUser")
                         .WithMany()
-                        .HasForeignKey("UserStatusId")
+                        .HasForeignKey("StatusUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Department");
+                    b.Navigation("Dept");
 
-                    b.Navigation("UserProfile");
+                    b.Navigation("Profile");
 
-                    b.Navigation("UserStatus");
+                    b.Navigation("StatusUser");
                 });
 #pragma warning restore 612, 618
         }
