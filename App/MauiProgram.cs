@@ -22,12 +22,12 @@ public static class MauiProgram
 #endif
 
         // Services
-        builder.Services.AddSingleton<ClienteService>();
+        builder.Services.AddSingleton<UserService>();
         builder.Services.AddSingleton<SettingsService>();
 
         // Pages
-        builder.Services.AddTransient<ClientesPage>();
-        builder.Services.AddTransient<CreateCliente>();
+        builder.Services.AddTransient<UserPage>();
+        builder.Services.AddTransient<CreateUser>();
         builder.Services.AddTransient<SettingsPage>();
 
         return builder.Build();

@@ -10,7 +10,7 @@ public class User
     public int Id { get; set; }
     
     [Required(ErrorMessage = "O nome é obrigatório.")]
-    [StringLength(50, ErrorMessage = "O nome deve ter no máximo 100 caracteres.")]
+    [StringLength(50, ErrorMessage = "O nome deve ter no máximo 50 caracteres.")]
     public string? Name { get; set; }
     
     [EmailAddress]
@@ -24,13 +24,13 @@ public class User
     
     [ForeignKey("Dept") ]
     public int DeptId { get; set; }
-    public required Department Department { get; set; }
+    public Department? Department { get; set; }
     
     [ForeignKey("UserStaus") ]
     public int UserStatusId { get; set; }
-    public required UserStatus UserStatus { get; set; }
+    public UserStatus? UserStatus { get; set; }
     
     [ForeignKey("Profile") ]
     public int ProfileId { get; set; }
-    public required UserProfile UserProfile { get; set; }
+    public UserProfile? UserProfile { get; set; }
 }

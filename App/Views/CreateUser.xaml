@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="App.Views.CreateUser"
+             Title="Dados do Usuário">
+    <ScrollView>
+        <VerticalStackLayout Spacing="10" Padding="20">
+
+            <Label Text="Nome" />
+            <Entry x:Name="NameEntry" Placeholder="Digite o nome" />
+
+            <Label Text="Email" />
+            <Entry x:Name="EmailEntry" Placeholder="Digite o email" Keyboard="Email" />
+
+            <Label Text="Senha" />
+            <Entry x:Name="PwdEntry" Placeholder="Digite a senha" IsPassword="True" />
+
+            <Label Text="Departamento" />
+            <Picker x:Name="DepartmentPicker" Title="Selecione o departamento" ItemDisplayBinding="{Binding Name}" />
+
+            <Label Text="Status do Usuário" />
+            <Picker x:Name="UserStatusPicker" Title="Selecione o status" ItemDisplayBinding="{Binding Name}" />
+
+            <Label Text="Perfil do Usuário" />
+            <Picker x:Name="UserProfilePicker" Title="Selecione o perfil" ItemDisplayBinding="{Binding Name}" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,20,0,0">
+                <Button Grid.Column="0" Text="Salvar" Clicked="SalvarButton_Clicked" />
+                <Button Grid.Column="1" Text="Cancelar" Clicked="CancelarButton_Clicked" BackgroundColor="Gray"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -7,8 +7,8 @@
     Title="App">
 
     <ShellContent
-        Title="Clientes"
-        ContentTemplate="{DataTemplate views:ClientesPage}"
-        Route="ClientesPage" />
+        Title="Usuários"
+        ContentTemplate="{DataTemplate views:UserPage}"
+        Route="UserPage" />
 
 </Shell>

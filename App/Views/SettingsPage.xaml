@@ -8,23 +8,84 @@
             <Label Text="URL Base da API" FontSize="Medium" FontAttributes="Bold"/>
             <Entry x:Name="BaseUrlEntry" Placeholder="https://localhost:7029" />
 
-            <Label Text="Rotas do CRUD" FontSize="Medium" FontAttributes="Bold" Margin="0,10,0,0"/>
-            
+            <!-- Departamentos -->
+            <Label Text="Endpoints de Departamentos" FontSize="Medium" FontAttributes="Bold" Margin="0,20,0,0"/>
             <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
                 <Label Grid.Row="0" Grid.Column="0" Text="Listar Todos (GET):" VerticalOptions="Center"/>
-                <Entry Grid.Row="0" Grid.Column="1" x:Name="GetAllEntry" />
+                <Entry Grid.Row="0" Grid.Column="1" x:Name="DeptGetAllEntry" />
 
                 <Label Grid.Row="1" Grid.Column="0" Text="Obter por ID (GET):" VerticalOptions="Center"/>
-                <Entry Grid.Row="1" Grid.Column="1" x:Name="GetByIdEntry" />
+                <Entry Grid.Row="1" Grid.Column="1" x:Name="DeptGetByIdEntry" />
 
                 <Label Grid.Row="2" Grid.Column="0" Text="Criar (POST):" VerticalOptions="Center"/>
-                <Entry Grid.Row="2" Grid.Column="1" x:Name="CreateEntry" />
+                <Entry Grid.Row="2" Grid.Column="1" x:Name="DeptCreateEntry" />
 
                 <Label Grid.Row="3" Grid.Column="0" Text="Atualizar (PUT):" VerticalOptions="Center"/>
-                <Entry Grid.Row="3" Grid.Column="1" x:Name="UpdateEntry" />
+                <Entry Grid.Row="3" Grid.Column="1" x:Name="DeptUpdateEntry" />
 
                 <Label Grid.Row="4" Grid.Column="0" Text="Deletar (DELETE):" VerticalOptions="Center"/>
-                <Entry Grid.Row="4" Grid.Column="1" x:Name="DeleteEntry" />
+                <Entry Grid.Row="4" Grid.Column="1" x:Name="DeptDeleteEntry" />
+            </Grid>
+
+            <!-- Usuários -->
+            <Label Text="Endpoints de Usuários" FontSize="Medium" FontAttributes="Bold" Margin="0,20,0,0"/>
+            <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                <Label Grid.Row="2" Grid.Column="0" Text="Criar (POST):" VerticalOptions="Center"/>
+                <Entry Grid.Row="2" Grid.Column="1" x:Name="UserCreateEntry" />
+
+                <Label Grid.Row="3" Grid.Column="0" Text="Atualizar (PUT):" VerticalOptions="Center"/>
+                <Entry Grid.Row="3" Grid.Column="1" x:Name="UserUpdateEntry" />
+
+                <Label Grid.Row="4" Grid.Column="0" Text="Deletar (DELETE):" VerticalOptions="Center"/>
+                <Entry Grid.Row="4" Grid.Column="1" x:Name="UserDeleteEntry" />
+            </Grid>
+
+            <!-- User DTO -->
+            <Label Text="Endpoints de User DTO" FontSize="Medium" FontAttributes="Bold" Margin="0,20,0,0"/>
+            <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                <Label Grid.Row="0" Grid.Column="0" Text="Listar Todos (GET):" VerticalOptions="Center"/>
+                <Entry Grid.Row="0" Grid.Column="1" x:Name="UserDtoGetAllEntry" />
+
+                <Label Grid.Row="1" Grid.Column="0" Text="Obter por ID (GET):" VerticalOptions="Center"/>
+                <Entry Grid.Row="1" Grid.Column="1" x:Name="UserDtoGetByIdEntry" />
+            </Grid>
+
+            <!-- Perfis de Usuário -->
+            <Label Text="Endpoints de Perfis de Usuário" FontSize="Medium" FontAttributes="Bold" Margin="0,20,0,0"/>
+            <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                <Label Grid.Row="0" Grid.Column="0" Text="Listar Todos (GET):" VerticalOptions="Center"/>
+                <Entry Grid.Row="0" Grid.Column="1" x:Name="UserProfileGetAllEntry" />
+
+                <Label Grid.Row="1" Grid.Column="0" Text="Obter por ID (GET):" VerticalOptions="Center"/>
+                <Entry Grid.Row="1" Grid.Column="1" x:Name="UserProfileGetByIdEntry" />
+
+                <Label Grid.Row="2" Grid.Column="0" Text="Criar (POST):" VerticalOptions="Center"/>
+                <Entry Grid.Row="2" Grid.Column="1" x:Name="UserProfileCreateEntry" />
+
+                <Label Grid.Row="3" Grid.Column="0" Text="Atualizar (PUT):" VerticalOptions="Center"/>
+                <Entry Grid.Row="3" Grid.Column="1" x:Name="UserProfileUpdateEntry" />
+
+                <Label Grid.Row="4" Grid.Column="0" Text="Deletar (DELETE):" VerticalOptions="Center"/>
+                <Entry Grid.Row="4" Grid.Column="1" x:Name="UserProfileDeleteEntry" />
+            </Grid>
+
+            <!-- Status de Usuário -->
+            <Label Text="Endpoints de Status de Usuário" FontSize="Medium" FontAttributes="Bold" Margin="0,20,0,0"/>
+            <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                <Label Grid.Row="0" Grid.Column="0" Text="Listar Todos (GET):" VerticalOptions="Center"/>
+                <Entry Grid.Row="0" Grid.Column="1" x:Name="UserStatusGetAllEntry" />
+
+                <Label Grid.Row="1" Grid.Column="0" Text="Obter por ID (GET):" VerticalOptions="Center"/>
+                <Entry Grid.Row="1" Grid.Column="1" x:Name="UserStatusGetByIdEntry" />
+
+                <Label Grid.Row="2" Grid.Column="0" Text="Criar (POST):" VerticalOptions="Center"/>
+                <Entry Grid.Row="2" Grid.Column="1" x:Name="UserStatusCreateEntry" />
+
+                <Label Grid.Row="3" Grid.Column="0" Text="Atualizar (PUT):" VerticalOptions="Center"/>
+                <Entry Grid.Row="3" Grid.Column="1" x:Name="UserStatusUpdateEntry" />
+
+                <Label Grid.Row="4" Grid.Column="0" Text="Deletar (DELETE):" VerticalOptions="Center"/>
+                <Entry Grid.Row="4" Grid.Column="1" x:Name="UserStatusDeleteEntry" />
             </Grid>
 
             <Button Text="Salvar" Clicked="SalvarButton_Clicked" Margin="0,20,0,0"/>

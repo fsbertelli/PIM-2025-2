@@ -19,9 +19,9 @@ public static class UserDtoEndpoints
                     Id = u.Id,
                     Name = u.Name,
                     Email = u.Email,
-                    UserProfile = u.UserProfile.Name,
-                    UserStatus = u.UserStatus.Name,
-                    Department = u.Department.Name
+                    UserProfile = u.UserProfile == null ? null : new UserProfileDto { Id = u.UserProfile.Id, Name = u.UserProfile.Name },
+                    UserStatus = u.UserStatus == null ? null : new UserStatusDto { Id = u.UserStatus.Id, Name = u.UserStatus.Name },
+                    Department = u.Department == null ? null : new DepartmentDto { Id = u.Department.Id, Name = u.Department.Name }
                 })
                 .ToListAsync());
         
@@ -37,9 +37,9 @@ public static class UserDtoEndpoints
                     Id = u.Id,
                     Name = u.Name,
                     Email = u.Email,
-                    UserProfile = u.UserProfile.Name,
-                    UserStatus = u.UserStatus.Name,
-                    Department = u.Department.Name
+                    UserProfile = u.UserProfile == null ? null : new UserProfileDto { Id = u.UserProfile.Id, Name = u.UserProfile.Name },
+                    UserStatus = u.UserStatus == null ? null : new UserStatusDto { Id = u.UserStatus.Id, Name = u.UserStatus.Name },
+                    Department = u.Department == null ? null : new DepartmentDto { Id = u.Department.Id, Name = u.Department.Name }
                 })
                 .FirstOrDefaultAsync(u => u.Id == id);
             return user is not null ? Results.Ok(user) : Results.NotFound();
