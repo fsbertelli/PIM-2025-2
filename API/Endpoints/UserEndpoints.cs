@@ -48,7 +48,7 @@ public static class UserEndpoints
             var userStatus = await db.UserStatus.FindAsync(dto.UserStatusId);
             var userProfile = await db.UserProfiles.FindAsync(dto.ProfileId);
 
-            // Log para diagnóstico
+            // Log
             Console.WriteLine($"PUT /users/{{id}} => id: {id}, name: {dto.Name}, deptId: {dto.DeptId}, userStatusId: {dto.UserStatusId}, profileId: {dto.ProfileId}");
             Console.WriteLine($"Departamentos encontrados: {(department != null)}, Status encontrados: {(userStatus != null)}, Perfil encontrado: {(userProfile != null)}");
 
@@ -87,5 +87,29 @@ public static class UserEndpoints
 
         // Rota para listar todos os usuários
         // REMOVIDO: duplicidade com UserDtoEndpoints.cs
+
+        // Rota de login
+        app.MapPost("/login", async (LoginDto login, AppDbContext db) =>
+        {
+            var user = await db.Users
+                .Include(u => u.Department)
+                .Include(u => u.UserStatus)
+                .Include(u => u.UserProfile)
+                .FirstOrDefaultAsync(u => u.Email == login.Email);
+            if (user == null || user.Pwd != login.Password)
+            {
+                return Results.Unauthorized();
+            }
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Department = user.Department != null ? new DepartmentDto { Id = user.Department.Id, Name = user.Department.Name } : null,
+                UserStatus = user.UserStatus != null ? new UserStatusDto { Id = user.UserStatus.Id, Name = user.UserStatus.Name } : null,
+                UserProfile = user.UserProfile != null ? new UserProfileDto { Id = user.UserProfile.Id, Name = user.UserProfile.Name } : null
+            };
+            return Results.Ok(userDto);
+        });
     }
 }
