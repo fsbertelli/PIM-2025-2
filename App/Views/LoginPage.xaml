@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="App.Views.LoginPage"
              Title="Login"
-             BackgroundColor="#F3F4F6">
+             BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
 
     <ScrollView>
         <Grid VerticalOptions="Center" HorizontalOptions="Center">
@@ -11,12 +11,12 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <Border BackgroundColor="White" Padding="20" HorizontalOptions="Center" WidthRequest="420">
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" Padding="20" HorizontalOptions="Center" WidthRequest="420">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="12" />
                 </Border.StrokeShape>
                 <Border.Shadow>
-                    <Shadow Brush="#0A000000" Offset="0,2" Radius="6" />
+                    <Shadow Brush="{StaticResource BlackBrush}" Offset="0,2" Radius="6" Opacity="0.06" />
                 </Border.Shadow>
                 <VerticalStackLayout Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
                     
@@ -47,15 +47,14 @@
 
                     <HorizontalStackLayout HorizontalOptions="FillAndExpand" VerticalOptions="Center" Spacing="8">
                         <CheckBox x:Name="RememberCheckBox" IsChecked="False" />
-                        <Label Text="Lembrar credenciais" VerticalOptions="Center" TextColor="#374151" />
+                        <Label Text="Lembrar credenciais" VerticalOptions="Center" />
                     </HorizontalStackLayout>
 
                     <Grid>
                         <Button x:Name="LoginButton"
                                 Text="Entrar"
                                 Clicked="OnLoginClicked"
-                                BackgroundColor="#2563EB"
-                                TextColor="White"
+                                
                                 CornerRadius="8"
                                 HeightRequest="42"
                                 WidthRequest="360"
@@ -64,7 +63,6 @@
                         <ActivityIndicator x:Name="LoginActivity"
                                            IsRunning="False"
                                            IsVisible="False"
-                                           Color="White"
                                            VerticalOptions="Center"
                                            HorizontalOptions="Center" />
                     </Grid>

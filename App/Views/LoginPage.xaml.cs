@@ -56,6 +56,7 @@ public partial class LoginPage : ContentPage
                 return;
             }
 
+            // Envia 'Email' e 'Password' (login por email)
             var payload = new { Email = email, Password = password };
             var json = JsonSerializer.Serialize(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");

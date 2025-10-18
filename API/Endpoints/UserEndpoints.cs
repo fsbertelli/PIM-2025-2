@@ -26,20 +26,34 @@ public static class UserEndpoints
             {
                 return Results.BadRequest("Senha é obrigatória.");
             }
-            
-            var user = new User
+
+            // Normaliza email e checa duplicidade antes de criar
+            var normalizedEmail = dto.Email?.Trim().ToLowerInvariant();
+            if (string.IsNullOrEmpty(normalizedEmail))
             {
-                Name = dto.Name,
-                Email = dto.Email,
-                // Armazena o hash da senha
-                Password = PasswordService.HashPassword(dto.Password),
-                DeptId = dto.DeptId,
-                Department = department,
-                UserStatusId = dto.UserStatusId,
-                UserStatus = userStatus,
-                ProfileId = dto.ProfileId,
-                UserProfile = userProfile
-            };
+                return Results.BadRequest("Email é obrigatório.");
+            }
+
+            var exists = await db.Users.AnyAsync(u => u.Email != null && u.Email.ToLower() == normalizedEmail);
+            if (exists)
+            {
+                return Results.Conflict(new { Message = "Email já cadastrado." });
+            }
+             
+             var user = new User
+             {
+                 Name = dto.Name,
+                // Normaliza o email para evitar problemas de comparação (caixa/espaços)
+                Email = normalizedEmail,
+                 // Armazena o hash da senha
+                 Password = PasswordService.HashPassword(dto.Password),
+                 DeptId = dto.DeptId,
+                 Department = department,
+                 UserStatusId = dto.UserStatusId,
+                 UserStatus = userStatus,
+                 ProfileId = dto.ProfileId,
+                 UserProfile = userProfile
+             };
             db.Users.Add(user);
             await db.SaveChangesAsync();
 
@@ -77,12 +91,26 @@ public static class UserEndpoints
                 return Results.BadRequest("Departamento, Status ou Perfil inválido.");
 
             user.Name = dto.Name;
-            user.Email = dto.Email;
-            // Atualiza a senha somente se um novo valor foi enviado (presume que dto.Password contém a senha em texto plano)
-            if (!string.IsNullOrEmpty(dto.Password))
+            // Normaliza o email ao atualizar e checa duplicidade (não pode colidir com outro usuário)
+            var normalizedNewEmail = dto.Email?.Trim().ToLowerInvariant();
+            if (string.IsNullOrEmpty(normalizedNewEmail))
             {
-                user.Password = PasswordService.HashPassword(dto.Password);
+                return Results.BadRequest("Email é obrigatório.");
             }
+            if (!string.Equals(user.Email, normalizedNewEmail, StringComparison.OrdinalIgnoreCase))
+            {
+                var conflict = await db.Users.AnyAsync(u => u.Id != id && u.Email != null && u.Email.ToLower() == normalizedNewEmail);
+                if (conflict)
+                {
+                    return Results.Conflict(new { Message = "Email já cadastrado por outro usuário." });
+                }
+                user.Email = normalizedNewEmail;
+            }
+             // Atualiza a senha somente se um novo valor foi enviado (presume que dto.Password contém a senha em texto plano)
+             if (!string.IsNullOrEmpty(dto.Password))
+             {
+                 user.Password = PasswordService.HashPassword(dto.Password);
+             }
             user.DeptId = dto.DeptId;
             user.UserStatusId = dto.UserStatusId;
             user.ProfileId = dto.ProfileId;
@@ -95,7 +123,15 @@ public static class UserEndpoints
             db.Entry(user).Property(u => u.ProfileId).IsModified = true;
 
             await db.SaveChangesAsync();
-            return Results.NoContent();
+            return Results.Ok(new
+            {
+                id = user.Id,
+                name = user.Name,
+                email = user.Email,
+                deptId = user.DeptId,
+                userStatusId = user.UserStatusId,
+                profileId = user.ProfileId
+            });
         })
         .WithName("UpdateUser")
         .Produces(204)
@@ -140,18 +176,21 @@ public static class UserEndpoints
         // Rota de login
         app.MapPost("/login", async (LoginRequest request, AppDbContext db) =>
         {
-            // validação básica - o binding garante instância, validamos campos importantes
-            if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
+            // validação básica - login por Email e Password
+            var email = request.Email?.Trim();
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(request.Password))
             {
-                return Results.BadRequest(new { Message = "Dados de login inválidos. Forneça 'username' e 'password'." });
+                return Results.BadRequest(new { Message = "Dados de login inválidos. Forneça 'email' e 'password'." });
             }
+            
+            // Normaliza email enviado e procura pelo email armazenado (normalizado)
+            var normalized = email.ToLowerInvariant();
 
-            // Assumimos que "Username" corresponde ao campo Email do usuário no banco
             var user = await db.Users
                 .Include(u => u.Department)
                 .Include(u => u.UserStatus)
                 .Include(u => u.UserProfile)
-                .FirstOrDefaultAsync(u => u.Email == request.Username);
+                .FirstOrDefaultAsync(u => u.Email != null && u.Email.ToLower() == normalized);
 
             if (user == null || string.IsNullOrEmpty(user.Password) || !PasswordService.VerifyPassword(request.Password, user.Password))
             {
