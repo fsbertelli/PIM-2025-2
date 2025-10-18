@@ -1,9 +1,5 @@
-using System;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.Maui.Controls;
 
 namespace App.Views;
 
@@ -14,48 +10,118 @@ public partial class LoginPage : ContentPage
     public LoginPage()
     {
         InitializeComponent();
-        // Cliente simples para testes. Se preferir usar HttpClient via DI, altere a inicialização.
         _httpClient = new HttpClient { BaseAddress = new Uri("http://localhost:5185") };
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        var remember = Preferences.Get("remember_me", false);
+        RememberCheckBox.IsChecked = remember;
+
+        if (remember)
+        {
+            var savedEmail = Preferences.Get("saved_email", string.Empty);
+            if (string.IsNullOrEmpty(savedEmail)) return;
+            EmailEntry.Text = savedEmail;
+            PasswordEntry.Focus();
+        }
+        else
+        {
+            EmailEntry.Text = string.Empty;
+            PasswordEntry.Text = string.Empty;
+        }
     }
 
     private async void OnLoginClicked(object sender, EventArgs e)
     {
-        var email = EmailEntry.Text?.Trim();
-        var password = PasswordEntry.Text;
+        // Hide previous error
+        ErrorLabel.IsVisible = false;
 
-        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
-        {
-            await DisplayAlert("Erro", "Preencha email e senha.", "OK");
-            return;
-        }
-
-        var payload = new { Email = email, Password = password };
-        var json = JsonSerializer.Serialize(payload);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        // Disable UI while request is in-flight
+        LoginButton.IsEnabled = false;
+        LoginActivity.IsRunning = true;
+        LoginActivity.IsVisible = true;
 
         try
         {
-            var resp = await _httpClient.PostAsync("/login", content);
-            if (resp.IsSuccessStatusCode)
+            var email = EmailEntry.Text.Trim();
+            var password = PasswordEntry.Text;
+
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
-                var respJson = await resp.Content.ReadAsStringAsync();
-                await DisplayAlert("Sucesso", "Login efetuado com sucesso.", "OK");
-                // Aqui você pode navegar para outra página ou salvar token/usuário.
+                ErrorLabel.Text = "Preencha email e senha.";
+                ErrorLabel.IsVisible = true;
+                return;
             }
-            else if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+
+            var payload = new { Email = email, Password = password };
+            var json = JsonSerializer.Serialize(payload);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            try
             {
-                await DisplayAlert("Falha", "Credenciais inválidas.", "OK");
+                var resp = await _httpClient.PostAsync("/login", content);
+                if (resp.IsSuccessStatusCode)
+                {
+                    var respJson = await resp.Content.ReadAsStringAsync();
+                    // Show server response to the user as feedback
+                    await DisplayAlert("Sucesso", $"Login efetuado com sucesso.\n{respJson}", "OK");
+
+                    var remember = RememberCheckBox.IsChecked;
+                    if (remember)
+                    {
+                        Preferences.Set("remember_me", true);
+                        Preferences.Set("saved_email", email);
+                    }
+                    else
+                    {
+                        Preferences.Remove("remember_me");
+                        Preferences.Remove("saved_email");
+                    }
+
+                    await Shell.Current.GoToAsync($"//{nameof(UserPage)}");
+                }
+                else if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    ErrorLabel.Text = "Credenciais inválidas.";
+                    ErrorLabel.IsVisible = true;
+                }
+                else
+                {
+                    var body = await resp.Content.ReadAsStringAsync();
+                    ErrorLabel.Text = $"Resposta: {resp.StatusCode}\n{body}";
+                    ErrorLabel.IsVisible = true;
+                }
             }
-            else
+            catch (HttpRequestException httpEx)
             {
-                var body = await resp.Content.ReadAsStringAsync();
-                await DisplayAlert("Erro", $"Resposta: {resp.StatusCode}\n{body}", "OK");
+                ErrorLabel.Text = "Erro de rede: " + httpEx.Message;
+                ErrorLabel.IsVisible = true;
             }
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Erro", ex.Message, "OK");
+            ErrorLabel.Text = ex.Message;
+            ErrorLabel.IsVisible = true;
+        }
+        finally
+        {
+            // Restore UI
+            LoginButton.IsEnabled = true;
+            LoginActivity.IsRunning = false;
+            LoginActivity.IsVisible = false;
         }
     }
-}
 
+    private void OnEmailCompleted(object sender, EventArgs e)
+    {
+        PasswordEntry.Focus();
+    }
+
+    private void OnPasswordCompleted(object sender, EventArgs e)
+    {
+        OnLoginClicked(sender, e);
+    }
+}

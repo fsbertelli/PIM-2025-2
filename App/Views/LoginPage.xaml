@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="App.Views.LoginPage"
+             Title="Login"
+             BackgroundColor="#F3F4F6">
+
+    <ScrollView>
+        <Grid VerticalOptions="Center" HorizontalOptions="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Border BackgroundColor="White" Padding="20" HorizontalOptions="Center" WidthRequest="420">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <Border.Shadow>
+                    <Shadow Brush="#0A000000" Offset="0,2" Radius="6" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
+                    
+                    <Entry x:Name="EmailEntry"
+                           Placeholder="Email"
+                           Keyboard="Email"
+                           ClearButtonVisibility="WhileEditing"
+                           Margin="0,6,0,0"
+                           HeightRequest="40"
+                           WidthRequest="360"
+                           ReturnType="Next"
+                           Completed="OnEmailCompleted"
+                           AutomationProperties.IsInAccessibleTree="True"
+                           AutomationProperties.Name="Email" />
+
+                    <Entry x:Name="PasswordEntry"
+                           Placeholder="Senha"
+                           IsPassword="True"
+                           ClearButtonVisibility="WhileEditing"
+                           HeightRequest="40"
+                           WidthRequest="360"
+                           ReturnType="Go"
+                           Completed="OnPasswordCompleted"
+                           AutomationProperties.IsInAccessibleTree="True"
+                           AutomationProperties.Name="Senha" />
+
+                    <Label x:Name="ErrorLabel" TextColor="#DC2626" FontSize="13" IsVisible="False" HorizontalOptions="Center" />
+
+                    <HorizontalStackLayout HorizontalOptions="FillAndExpand" VerticalOptions="Center" Spacing="8">
+                        <CheckBox x:Name="RememberCheckBox" IsChecked="False" />
+                        <Label Text="Lembrar credenciais" VerticalOptions="Center" TextColor="#374151" />
+                    </HorizontalStackLayout>
+
+                    <Grid>
+                        <Button x:Name="LoginButton"
+                                Text="Entrar"
+                                Clicked="OnLoginClicked"
+                                BackgroundColor="#2563EB"
+                                TextColor="White"
+                                CornerRadius="8"
+                                HeightRequest="42"
+                                WidthRequest="360"
+                                HorizontalOptions="Center" />
+
+                        <ActivityIndicator x:Name="LoginActivity"
+                                           IsRunning="False"
+                                           IsVisible="False"
+                                           Color="White"
+                                           VerticalOptions="Center"
+                                           HorizontalOptions="Center" />
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+    </ScrollView>
+
+</ContentPage>
