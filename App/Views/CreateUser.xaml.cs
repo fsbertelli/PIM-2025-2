@@ -67,7 +67,8 @@ public partial class CreateUser : ContentPage
         {
             NameEntry.Text = _user.Name;
             EmailEntry.Text = _user.Email;
-            PwdEntry.Text = _user.Pwd;
+            // Do not pre-fill password for security
+            // PasswordEntry.Text = _user.Password;
             DepartmentPicker.SelectedItem = _departments.FirstOrDefault(d => d.Id == _user.Department?.Id);
             UserStatusPicker.SelectedItem = _userStatuses.FirstOrDefault(s => s.Id == _user.UserStatus?.Id);
             UserProfilePicker.SelectedItem = _userProfiles.FirstOrDefault(p => p.Id == _user.UserProfile?.Id);
@@ -82,14 +83,14 @@ public partial class CreateUser : ContentPage
 
         await DisplayAlert("Debug IDs", $"DeptId: {deptId}\nStatusId: {statusId}\nProfileId: {profileId}", "OK");
 
-        if (string.IsNullOrWhiteSpace(NameEntry.Text) || string.IsNullOrWhiteSpace(EmailEntry.Text) || string.IsNullOrWhiteSpace(PwdEntry.Text))
+        if (string.IsNullOrWhiteSpace(NameEntry.Text) || string.IsNullOrWhiteSpace(EmailEntry.Text) || string.IsNullOrWhiteSpace(PasswordEntry.Text))
         {
             await DisplayAlert("Campos Obrigatórios", "Preencha Nome, Email e Senha.", "OK");
             return;
         }
-        if (PwdEntry.Text.Length > 12)
+        if (PasswordEntry.Text.Length < 6 || PasswordEntry.Text.Length > 100)
         {
-            await DisplayAlert("Senha Inválida", "A senha deve ter no máximo 12 caracteres.", "OK");
+            await DisplayAlert("Senha Inválida", "A senha deve ter entre 6 e 100 caracteres.", "OK");
             return;
         }
         if (!EmailEntry.Text.Contains("@") || !EmailEntry.Text.Contains("."))
@@ -107,7 +108,7 @@ public partial class CreateUser : ContentPage
         {
             Name = NameEntry.Text,
             Email = EmailEntry.Text,
-            Pwd = PwdEntry.Text,
+            Password = PasswordEntry.Text,
             DeptId = deptId,
             UserStatusId = statusId,
             ProfileId = profileId

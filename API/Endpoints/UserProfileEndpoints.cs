@@ -9,17 +9,34 @@ public static class UserProfileEndpoints
     public static void MapUserProfileEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("/profiles", async (AppDbContext db) =>
-            await db.UserProfiles.ToListAsync());
+            await db.UserProfiles.ToListAsync())
+        .WithName("GetProfiles")
+        .Produces(200)
+        .Produces(400)
+        .Produces(401);
 
         app.MapGet("/profiles/{id}", async (int id, AppDbContext db) =>
-            await db.UserProfiles.FindAsync(id) is UserProfile userProfile ? Results.Ok(userProfile) : Results.NotFound("Profile not found"));
+        {
+            var userProfile = await db.UserProfiles.FindAsync(id);
+            return userProfile is not null ? Results.Ok(userProfile) : Results.NotFound("Profile not found");
+        })
+        .WithName("GetProfileById")
+        .Produces(200)
+        .Produces(404)
+        .Produces(401);
 
         app.MapPost("/profiles", async (UserProfile userProfile, AppDbContext db) =>
         {
-            db.UserProfiles.Add(userProfile);
+            // Create a new UserProfile and copy allowed fields; ignore any Id provided by client
+            var entity = new UserProfile { Name = userProfile.Name };
+            db.UserProfiles.Add(entity);
             await db.SaveChangesAsync();
-            return Results.Created($"/profiles/{userProfile.Id}", userProfile);
-        });
+            return Results.Created($"/profiles/{entity.Id}", entity);
+        })
+        .WithName("CreateProfile")
+        .Produces(201)
+        .Produces(400)
+        .Produces(401);
         
         app.MapPut("/profiles/{id}", async (int id, UserProfile inputUserProfile, AppDbContext db) =>
         {
@@ -30,7 +47,11 @@ public static class UserProfileEndpoints
 
             await db.SaveChangesAsync();
             return Results.NoContent();
-        });
+        })
+        .WithName("UpdateProfile")
+        .Produces(204)
+        .Produces(404)
+        .Produces(401);
         
         app.MapDelete("/profiles/{id}", async (int id, AppDbContext db) =>
         {
@@ -40,6 +61,10 @@ public static class UserProfileEndpoints
             db.UserProfiles.Remove(userProfile);
             await db.SaveChangesAsync();
             return Results.Ok(userProfile);
-        });
+        })
+        .WithName("DeleteProfile")
+        .Produces(200)
+        .Produces(404)
+        .Produces(401);
     }
 }

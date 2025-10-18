@@ -13,7 +13,7 @@
             <Entry x:Name="EmailEntry" Placeholder="Digite o email" Keyboard="Email" />
 
             <Label Text="Senha" />
-            <Entry x:Name="PwdEntry" Placeholder="Digite a senha" IsPassword="True" />
+            <Entry x:Name="PasswordEntry" Placeholder="Digite a senha" IsPassword="True" />
 
             <Label Text="Departamento" />
             <Picker x:Name="DepartmentPicker" Title="Selecione o departamento" ItemDisplayBinding="{Binding Name}" />

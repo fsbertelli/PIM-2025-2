@@ -1,5 +1,4 @@
 using API.Data;
-using API.Models;
 using API.Models.DTO;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +22,11 @@ public static class UserDtoEndpoints
                     UserStatus = u.UserStatus == null ? null : new UserStatusDto { Id = u.UserStatus.Id, Name = u.UserStatus.Name },
                     Department = u.Department == null ? null : new DepartmentDto { Id = u.Department.Id, Name = u.Department.Name }
                 })
-                .ToListAsync());
+                .ToListAsync())
+        .WithName("GetUsers")
+        .Produces(200)
+        .Produces(400)
+        .Produces(401);
         
         // Rota para obter um usuário por ID
         app.MapGet("/users/{id}", async (int id, AppDbContext db) =>
@@ -43,6 +46,10 @@ public static class UserDtoEndpoints
                 })
                 .FirstOrDefaultAsync(u => u.Id == id);
             return user is not null ? Results.Ok(user) : Results.NotFound();
-        });
+        })
+        .WithName("GetUserById")
+        .Produces(200)
+        .Produces(404)
+        .Produces(401);
     }
 }

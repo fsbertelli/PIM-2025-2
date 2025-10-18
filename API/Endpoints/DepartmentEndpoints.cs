@@ -9,17 +9,33 @@ public static class DepartmentEndpoints
     public static void MapDeptsEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("/departments", async (AppDbContext db) =>
-            await db.Departments.ToListAsync());
+            await db.Departments.ToListAsync())
+        .WithName("GetDepartments")
+        .Produces(200)
+        .Produces(401);
         
         app.MapGet("/departments/{id}", async (int id, AppDbContext db) =>
-            await db.Departments.FindAsync(id) is Department dept ? Results.Ok(dept) : Results.NotFound());
+        {
+            var dept = await db.Departments.FindAsync(id);
+            return dept is not null ? Results.Ok(dept) : Results.NotFound();
+        })
+        .WithName("GetDepartmentById")
+        .Produces(200)
+        .Produces(404)
+        .Produces(401);
 
         app.MapPost("/departments", async (Department department, AppDbContext db) =>
         {
-            db.Departments.Add(department);
+            // Create a new Department and copy allowed fields only; ignore any Id provided by client
+            var entity = new Department { Name = department.Name, AcceptTicket = department.AcceptTicket };
+            db.Departments.Add(entity);
             await db.SaveChangesAsync();
-            return Results.Created($"/departments/{department.Id}", department);
-        });
+            return Results.Created($"/departments/{entity.Id}", entity);
+        })
+        .WithName("CreateDepartment")
+        .Produces(201)
+        .Produces(400)
+        .Produces(401);
         
         app.MapPut("/departments/{id}", async (int id, Department inputDepartment, AppDbContext db) =>
         {
@@ -30,7 +46,11 @@ public static class DepartmentEndpoints
 
             await db.SaveChangesAsync();
             return Results.NoContent();
-        });
+        })
+        .WithName("UpdateDepartment")
+        .Produces(204)
+        .Produces(404)
+        .Produces(401);
         
         app.MapDelete("/departments/{id}", async (int id, AppDbContext db) =>
         {
@@ -40,7 +60,11 @@ public static class DepartmentEndpoints
             db.Departments.Remove(dept);
             await db.SaveChangesAsync();
             return Results.Ok(dept);
-        });
+        })
+        .WithName("DeleteDepartment")
+        .Produces(200)
+        .Produces(404)
+        .Produces(401);
         
     }
 
