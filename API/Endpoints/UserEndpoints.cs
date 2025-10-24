@@ -10,9 +10,18 @@ public static class UserEndpoints
 {
     public static void MapUserEndpoints(this IEndpointRouteBuilder app)
     {
-        // Rota para criar um novo usuário
         app.MapPost("/users", async (CreateUserDto dto, AppDbContext db) =>
         {
+            try
+            {
+                var serialized = System.Text.Json.JsonSerializer.Serialize(dto);
+                Console.WriteLine($"DEBUG POST /users -> received DTO: {serialized}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DEBUG POST /users -> failed to serialize dto: {ex.Message}");
+            }
+
             var department = await db.Departments.FindAsync(dto.DeptId);
             var userStatus = await db.UserStatus.FindAsync(dto.UserStatusId);
             var userProfile = await db.UserProfiles.FindAsync(dto.ProfileId);
@@ -27,7 +36,6 @@ public static class UserEndpoints
                 return Results.BadRequest("Senha é obrigatória.");
             }
 
-            // Normaliza email e checa duplicidade antes de criar
             var normalizedEmail = dto.Email?.Trim().ToLowerInvariant();
             if (string.IsNullOrEmpty(normalizedEmail))
             {
@@ -43,9 +51,7 @@ public static class UserEndpoints
              var user = new User
              {
                  Name = dto.Name,
-                // Normaliza o email para evitar problemas de comparação (caixa/espaços)
                 Email = normalizedEmail,
-                 // Armazena o hash da senha
                  Password = PasswordService.HashPassword(dto.Password),
                  DeptId = dto.DeptId,
                  Department = department,
@@ -73,8 +79,7 @@ public static class UserEndpoints
         .Produces(201)
         .Produces(401);
 
-        // Rota para atualizar um usuário existente
-        app.MapPut("/users/{id}", async (int id, CreateUserDto dto, AppDbContext db) =>
+        app.MapPut("/users/{id}", async (int id, UpdateUserDto dto, AppDbContext db) =>
         {
             var user = await db.Users.FindAsync(id);
             if (user is null) return Results.NotFound("Usuário não encontrado.");
@@ -83,15 +88,12 @@ public static class UserEndpoints
             var userStatus = await db.UserStatus.FindAsync(dto.UserStatusId);
             var userProfile = await db.UserProfiles.FindAsync(dto.ProfileId);
 
-            // Log
-            Console.WriteLine($"PUT /users/{{id}} => id: {id}, name: {dto.Name}, deptId: {dto.DeptId}, userStatusId: {dto.UserStatusId}, profileId: {dto.ProfileId}");
+            Console.WriteLine($"PUT /users/{{id}} => id: {id}, email: {dto.Email}, deptId: {dto.DeptId}, userStatusId: {dto.UserStatusId}, profileId: {dto.ProfileId}");
             Console.WriteLine($"Departamentos encontrados: {(department != null)}, Status encontrados: {(userStatus != null)}, Perfil encontrado: {(userProfile != null)}");
 
             if (department is null || userStatus is null || userProfile is null)
                 return Results.BadRequest("Departamento, Status ou Perfil inválido.");
 
-            user.Name = dto.Name;
-            // Normaliza o email ao atualizar e checa duplicidade (não pode colidir com outro usuário)
             var normalizedNewEmail = dto.Email?.Trim().ToLowerInvariant();
             if (string.IsNullOrEmpty(normalizedNewEmail))
             {
@@ -106,7 +108,6 @@ public static class UserEndpoints
                 }
                 user.Email = normalizedNewEmail;
             }
-             // Atualiza a senha somente se um novo valor foi enviado (presume que dto.Password contém a senha em texto plano)
              if (!string.IsNullOrEmpty(dto.Password))
              {
                  user.Password = PasswordService.HashPassword(dto.Password);
@@ -115,7 +116,6 @@ public static class UserEndpoints
             user.UserStatusId = dto.UserStatusId;
             user.ProfileId = dto.ProfileId;
 
-            db.Entry(user).Property(u => u.Name).IsModified = true;
             db.Entry(user).Property(u => u.Email).IsModified = true;
             if (!string.IsNullOrEmpty(dto.Password)) db.Entry(user).Property(u => u.Password).IsModified = true;
             db.Entry(user).Property(u => u.DeptId).IsModified = true;
@@ -138,10 +138,8 @@ public static class UserEndpoints
         .Produces(404)
         .Produces(401);
 
-        // Rota para deletar um usuário
         app.MapDelete("/users/{id}", async (int id, AppDbContext db) =>
         {
-            // load user including navigation properties to be safe
             var user = await db.Users
                 .Include(u => u.Department)
                 .Include(u => u.UserStatus)
@@ -170,20 +168,14 @@ public static class UserEndpoints
         .Produces(404)
         .Produces(401);
 
-        // Rota para listar todos os usuários
-        // REMOVIDO: duplicidade com UserDtoEndpoints.cs
-
-        // Rota de login
         app.MapPost("/login", async (LoginRequest request, AppDbContext db) =>
         {
-            // validação básica - login por Email e Password
             var email = request.Email?.Trim();
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(request.Password))
             {
                 return Results.BadRequest(new { Message = "Dados de login inválidos. Forneça 'email' e 'password'." });
             }
-            
-            // Normaliza email enviado e procura pelo email armazenado (normalizado)
+
             var normalized = email.ToLowerInvariant();
 
             var user = await db.Users

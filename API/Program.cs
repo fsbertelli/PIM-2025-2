@@ -25,7 +25,7 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.MapGet("/info", () => new {
     Solucao = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name,

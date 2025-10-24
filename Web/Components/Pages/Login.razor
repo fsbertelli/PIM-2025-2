@@ -51,6 +51,10 @@
                     }
                 </button>
             </div>
+
+            <div class="form-row">
+                <a class="btn-link" href="/users/create">Cadastrar novo usuário</a>
+            </div>
         </div>
     </div>
 
@@ -61,6 +65,13 @@
     private bool _isSubmitting;
     private string? _errorMessage;
 
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject]
+    private HttpClient Http { get; set; } = default!;
+    [Inject]
+    private IJSRuntime Js { get; set; } = default!;
+
     private async Task HandleValidSubmit()
     {
         _errorMessage = null;
@@ -69,23 +80,15 @@
 
         try
         {
-            Console.WriteLine("DEBUG -> Submitting login form");
-            Console.WriteLine("DEBUG -> " + _loginModel.Email);
-            _loginModel.Email = "dev@dev.com";
-            _loginModel.Password = "dev";
-            Console.WriteLine("DEBUG -> " + _loginModel.Email);
-
-            // Call API /login endpoint
             var payload = new { email = _loginModel.Email, password = _loginModel.Password };
-            Console.WriteLine("DEBUG -> " + payload + _loginModel?.Email?.Length + _loginModel?.Password?.Length);
-
             var response = await Http.PostAsJsonAsync("/login", payload);
-            Console.WriteLine("DEBUG -> " + response.StatusCode);
 
             if (response.IsSuccessStatusCode)
             {
-                await InvokeAsync(() => NavigationManager.NavigateTo("/weather"));
-                
+                await Js.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "1");
+                navigated = true;
+                await InvokeAsync(() => NavigationManager.NavigateTo("/users"));
+                return;
             }
             else if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
@@ -95,8 +98,7 @@
             else
             {
                 var text = await response.Content.ReadAsStringAsync();
-                _errorMessage = $"Erro na autenticação: {(int)response.StatusCode} - {text}";
-                Console.WriteLine("DEBUG -> " + _errorMessage);
+                _errorMessage = $"Erro na autentica\u00e7\u00e3o: {(int)response.StatusCode} - {text}";
             }
         }
         catch (Exception ex)
@@ -108,11 +110,7 @@
             if (!navigated)
             {
                 _isSubmitting = false;
-            }        }
+            }
+        }
     }
-
-    [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
-    [Inject]
-    private HttpClient Http { get; set; } = default!;
 }
