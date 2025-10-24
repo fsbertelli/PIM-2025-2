@@ -10,3 +10,363 @@ info: Microsoft.Hosting.Lifetime[0]
       Content root path: C:\PIM-2025-2\API
 warn: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware[3]
       Failed to determine the https port for redirect.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (155ms) [Parameters=[@__normalized_0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[DeptId], [u].[Email], [u].[Name], [u].[Password], [u].[ProfileId], [u].[UserStatusId], [d].[Id], [d].[AcceptTicket], [d].[Name], [u0].[Id], [u0].[Name], [u1].[Id], [u1].[Name]
+      FROM [Users] AS [u]
+      INNER JOIN [Departments] AS [d] ON [u].[DeptId] = [d].[Id]
+      INNER JOIN [UserStatus] AS [u0] ON [u].[UserStatusId] = [u0].[Id]
+      INNER JOIN [UserProfiles] AS [u1] ON [u].[ProfileId] = [u1].[Id]
+      WHERE [u].[Email] IS NOT NULL AND LOWER([u].[Email]) = @__normalized_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [d].[Id], [d].[AcceptTicket], [d].[Name]
+      FROM [Departments] AS [d]
+      WHERE [d].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserStatus] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserProfiles] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (8ms) [Parameters=[@__normalizedEmail_0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT CASE
+          WHEN EXISTS (
+              SELECT 1
+              FROM [Users] AS [u]
+              WHERE [u].[Email] IS NOT NULL AND LOWER([u].[Email]) = @__normalizedEmail_0) THEN CAST(1 AS bit)
+          ELSE CAST(0 AS bit)
+      END
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [d].[Id], [d].[AcceptTicket], [d].[Name]
+      FROM [Departments] AS [d]
+      WHERE [d].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserStatus] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserProfiles] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__normalizedEmail_0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT CASE
+          WHEN EXISTS (
+              SELECT 1
+              FROM [Users] AS [u]
+              WHERE [u].[Email] IS NOT NULL AND LOWER([u].[Email]) = @__normalizedEmail_0) THEN CAST(1 AS bit)
+          ELSE CAST(0 AS bit)
+      END
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (11ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 50), @p2='?' (Size = 50), @p3='?' (Size = 64), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SET IMPLICIT_TRANSACTIONS OFF;
+      SET NOCOUNT ON;
+      INSERT INTO [Users] ([DeptId], [Email], [Name], [Password], [ProfileId], [UserStatusId])
+      OUTPUT INSERTED.[Id]
+      VALUES (@p0, @p1, @p2, @p3, @p4, @p5);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (9ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [u].[Id], [u].[Name], [u].[Email], CAST(0 AS bit), [u0].[Id], [u0].[Name], CAST(0 AS bit), [u1].[Id], [u1].[Name], CAST(0 AS bit), [d].[Id], [d].[Name]
+      FROM [Users] AS [u]
+      INNER JOIN [UserProfiles] AS [u0] ON [u].[ProfileId] = [u0].[Id]
+      INNER JOIN [UserStatus] AS [u1] ON [u].[UserStatusId] = [u1].[Id]
+      INNER JOIN [Departments] AS [d] ON [u].[DeptId] = [d].[Id]
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[DeptId], [u].[Email], [u].[Name], [u].[Password], [u].[ProfileId], [u].[UserStatusId]
+      FROM [Users] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [d].[Id], [d].[AcceptTicket], [d].[Name]
+      FROM [Departments] AS [d]
+      WHERE [d].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserStatus] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserProfiles] AS [u]
+      WHERE [u].[Id] = @__p_0
+PUT /users/{id} => id: 2, name: User Two, deptId: 1, userStatusId: 1, profileId: 1
+Departamentos encontrados: True, Status encontrados: True, Perfil encontrado: True
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (11ms) [Parameters=[@__id_0='?' (DbType = Int32), @__normalizedNewEmail_1='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT CASE
+          WHEN EXISTS (
+              SELECT 1
+              FROM [Users] AS [u]
+              WHERE [u].[Id] <> @__id_0 AND [u].[Email] IS NOT NULL AND LOWER([u].[Email]) = @__normalizedNewEmail_1) THEN CAST(1 AS bit)
+          ELSE CAST(0 AS bit)
+      END
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [d].[Id], [d].[AcceptTicket], [d].[Name]
+      FROM [Departments] AS [d]
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [u].[Id], [u].[Name]
+      FROM [UserStatus] AS [u]
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [u].[Id], [u].[Name]
+      FROM [UserProfiles] AS [u]
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [d].[Id], [d].[AcceptTicket], [d].[Name]
+      FROM [Departments] AS [d]
+      WHERE [d].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserStatus] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserProfiles] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__normalizedEmail_0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT CASE
+          WHEN EXISTS (
+              SELECT 1
+              FROM [Users] AS [u]
+              WHERE [u].[Email] IS NOT NULL AND LOWER([u].[Email]) = @__normalizedEmail_0) THEN CAST(1 AS bit)
+          ELSE CAST(0 AS bit)
+      END
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [d].[Id], [d].[AcceptTicket], [d].[Name]
+      FROM [Departments] AS [d]
+      WHERE [d].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserStatus] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserProfiles] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__normalizedEmail_0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT CASE
+          WHEN EXISTS (
+              SELECT 1
+              FROM [Users] AS [u]
+              WHERE [u].[Email] IS NOT NULL AND LOWER([u].[Email]) = @__normalizedEmail_0) THEN CAST(1 AS bit)
+          ELSE CAST(0 AS bit)
+      END
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[DeptId], [u].[Email], [u].[Name], [u].[Password], [u].[ProfileId], [u].[UserStatusId]
+      FROM [Users] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [d].[Id], [d].[AcceptTicket], [d].[Name]
+      FROM [Departments] AS [d]
+      WHERE [d].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserStatus] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserProfiles] AS [u]
+      WHERE [u].[Id] = @__p_0
+PUT /users/{id} => id: 1, name: Felipe Bertelli, deptId: 1, userStatusId: 1, profileId: 1
+Departamentos encontrados: True, Status encontrados: True, Perfil encontrado: True
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[@p6='?' (DbType = Int32), @p0='?' (DbType = Int32), @p1='?' (Size = 50), @p2='?' (Size = 50), @p3='?' (Size = 64), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SET IMPLICIT_TRANSACTIONS OFF;
+      SET NOCOUNT ON;
+      UPDATE [Users] SET [DeptId] = @p0, [Email] = @p1, [Name] = @p2, [Password] = @p3, [ProfileId] = @p4, [UserStatusId] = @p5
+      OUTPUT 1
+      WHERE [Id] = @p6;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__normalized_0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[DeptId], [u].[Email], [u].[Name], [u].[Password], [u].[ProfileId], [u].[UserStatusId], [d].[Id], [d].[AcceptTicket], [d].[Name], [u0].[Id], [u0].[Name], [u1].[Id], [u1].[Name]
+      FROM [Users] AS [u]
+      INNER JOIN [Departments] AS [d] ON [u].[DeptId] = [d].[Id]
+      INNER JOIN [UserStatus] AS [u0] ON [u].[UserStatusId] = [u0].[Id]
+      INNER JOIN [UserProfiles] AS [u1] ON [u].[ProfileId] = [u1].[Id]
+      WHERE [u].[Email] IS NOT NULL AND LOWER([u].[Email]) = @__normalized_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [d].[Id], [d].[AcceptTicket], [d].[Name]
+      FROM [Departments] AS [d]
+      WHERE [d].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserStatus] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserProfiles] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__normalizedEmail_0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT CASE
+          WHEN EXISTS (
+              SELECT 1
+              FROM [Users] AS [u]
+              WHERE [u].[Email] IS NOT NULL AND LOWER([u].[Email]) = @__normalizedEmail_0) THEN CAST(1 AS bit)
+          ELSE CAST(0 AS bit)
+      END
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [d].[Id], [d].[AcceptTicket], [d].[Name]
+      FROM [Departments] AS [d]
+      WHERE [d].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserStatus] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserProfiles] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__normalizedEmail_0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT CASE
+          WHEN EXISTS (
+              SELECT 1
+              FROM [Users] AS [u]
+              WHERE [u].[Email] IS NOT NULL AND LOWER([u].[Email]) = @__normalizedEmail_0) THEN CAST(1 AS bit)
+          ELSE CAST(0 AS bit)
+      END
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [u].[Id], [u].[Name], [u].[Email], CAST(0 AS bit), [u0].[Id], [u0].[Name], CAST(0 AS bit), [u1].[Id], [u1].[Name], CAST(0 AS bit), [d].[Id], [d].[Name]
+      FROM [Users] AS [u]
+      INNER JOIN [UserProfiles] AS [u0] ON [u].[ProfileId] = [u0].[Id]
+      INNER JOIN [UserStatus] AS [u1] ON [u].[UserStatusId] = [u1].[Id]
+      INNER JOIN [Departments] AS [d] ON [u].[DeptId] = [d].[Id]
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[DeptId], [u].[Email], [u].[Name], [u].[Password], [u].[ProfileId], [u].[UserStatusId]
+      FROM [Users] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [d].[Id], [d].[AcceptTicket], [d].[Name]
+      FROM [Departments] AS [d]
+      WHERE [d].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserStatus] AS [u]
+      WHERE [u].[Id] = @__p_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[Name]
+      FROM [UserProfiles] AS [u]
+      WHERE [u].[Id] = @__p_0
+PUT /users/{id} => id: 2, name: User Two, deptId: 1, userStatusId: 1, profileId: 1
+Departamentos encontrados: True, Status encontrados: True, Perfil encontrado: True
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@__id_0='?' (DbType = Int32), @__normalizedNewEmail_1='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT CASE
+          WHEN EXISTS (
+              SELECT 1
+              FROM [Users] AS [u]
+              WHERE [u].[Id] <> @__id_0 AND [u].[Email] IS NOT NULL AND LOWER([u].[Email]) = @__normalizedNewEmail_1) THEN CAST(1 AS bit)
+          ELSE CAST(0 AS bit)
+      END
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[@__normalized_0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[DeptId], [u].[Email], [u].[Name], [u].[Password], [u].[ProfileId], [u].[UserStatusId], [d].[Id], [d].[AcceptTicket], [d].[Name], [u0].[Id], [u0].[Name], [u1].[Id], [u1].[Name]
+      FROM [Users] AS [u]
+      INNER JOIN [Departments] AS [d] ON [u].[DeptId] = [d].[Id]
+      INNER JOIN [UserStatus] AS [u0] ON [u].[UserStatusId] = [u0].[Id]
+      INNER JOIN [UserProfiles] AS [u1] ON [u].[ProfileId] = [u1].[Id]
+      WHERE [u].[Email] IS NOT NULL AND LOWER([u].[Email]) = @__normalized_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [u].[Id], [u].[Name], [u].[Email], CAST(0 AS bit), [u0].[Id], [u0].[Name], CAST(0 AS bit), [u1].[Id], [u1].[Name], CAST(0 AS bit), [d].[Id], [d].[Name]
+      FROM [Users] AS [u]
+      INNER JOIN [UserProfiles] AS [u0] ON [u].[ProfileId] = [u0].[Id]
+      INNER JOIN [UserStatus] AS [u1] ON [u].[UserStatusId] = [u1].[Id]
+      INNER JOIN [Departments] AS [d] ON [u].[DeptId] = [d].[Id]
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [u].[Id], [u].[Name], [u].[Email], CAST(0 AS bit), [u0].[Id], [u0].[Name], CAST(0 AS bit), [u1].[Id], [u1].[Name], CAST(0 AS bit), [d].[Id], [d].[Name]
+      FROM [Users] AS [u]
+      INNER JOIN [UserProfiles] AS [u0] ON [u].[ProfileId] = [u0].[Id]
+      INNER JOIN [UserStatus] AS [u1] ON [u].[UserStatusId] = [u1].[Id]
+      INNER JOIN [Departments] AS [d] ON [u].[DeptId] = [d].[Id]
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [d].[Id], [d].[AcceptTicket], [d].[Name]
+      FROM [Departments] AS [d]
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [u].[Id], [u].[Name]
+      FROM [UserStatus] AS [u]
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [u].[Id], [u].[Name]
+      FROM [UserProfiles] AS [u]
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [u].[Id], [u].[Name], [u].[Email], CAST(0 AS bit), [u0].[Id], [u0].[Name], CAST(0 AS bit), [u1].[Id], [u1].[Name], CAST(0 AS bit), [d].[Id], [d].[Name]
+      FROM [Users] AS [u]
+      INNER JOIN [UserProfiles] AS [u0] ON [u].[ProfileId] = [u0].[Id]
+      INNER JOIN [UserStatus] AS [u1] ON [u].[UserStatusId] = [u1].[Id]
+      INNER JOIN [Departments] AS [d] ON [u].[DeptId] = [d].[Id]
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@__normalized_0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[DeptId], [u].[Email], [u].[Name], [u].[Password], [u].[ProfileId], [u].[UserStatusId], [d].[Id], [d].[AcceptTicket], [d].[Name], [u0].[Id], [u0].[Name], [u1].[Id], [u1].[Name]
+      FROM [Users] AS [u]
+      INNER JOIN [Departments] AS [d] ON [u].[DeptId] = [d].[Id]
+      INNER JOIN [UserStatus] AS [u0] ON [u].[UserStatusId] = [u0].[Id]
+      INNER JOIN [UserProfiles] AS [u1] ON [u].[ProfileId] = [u1].[Id]
+      WHERE [u].[Email] IS NOT NULL AND LOWER([u].[Email]) = @__normalized_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@__normalized_0='?' (Size = 50)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [u].[Id], [u].[DeptId], [u].[Email], [u].[Name], [u].[Password], [u].[ProfileId], [u].[UserStatusId], [d].[Id], [d].[AcceptTicket], [d].[Name], [u0].[Id], [u0].[Name], [u1].[Id], [u1].[Name]
+      FROM [Users] AS [u]
+      INNER JOIN [Departments] AS [d] ON [u].[DeptId] = [d].[Id]
+      INNER JOIN [UserStatus] AS [u0] ON [u].[UserStatusId] = [u0].[Id]
+      INNER JOIN [UserProfiles] AS [u1] ON [u].[ProfileId] = [u1].[Id]
+      WHERE [u].[Email] IS NOT NULL AND LOWER([u].[Email]) = @__normalized_0
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [u].[Id], [u].[Name], [u].[Email], CAST(0 AS bit), [u0].[Id], [u0].[Name], CAST(0 AS bit), [u1].[Id], [u1].[Name], CAST(0 AS bit), [d].[Id], [d].[Name]
+      FROM [Users] AS [u]
+      INNER JOIN [UserProfiles] AS [u0] ON [u].[ProfileId] = [u0].[Id]
+      INNER JOIN [UserStatus] AS [u1] ON [u].[UserStatusId] = [u1].[Id]
+      INNER JOIN [Departments] AS [d] ON [u].[DeptId] = [d].[Id]
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [d].[Id], [d].[AcceptTicket], [d].[Name]
+      FROM [Departments] AS [d]
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [u].[Id], [u].[Name]
+      FROM [UserStatus] AS [u]
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [u].[Id], [u].[Name]
+      FROM [UserProfiles] AS [u]

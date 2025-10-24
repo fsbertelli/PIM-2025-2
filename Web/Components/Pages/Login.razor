@@ -1,0 +1,118 @@
+﻿@page "/login"
+@page "/"
+@using Web.Models
+@using System.Net
+@rendermode InteractiveServer
+
+<EditForm Model="_loginModel" OnValidSubmit="HandleValidSubmit" FormName="LoginForm">
+    <DataAnnotationsValidator />
+
+    <div class="login-page">
+        <div class="login-card">
+            <h3>Entrar</h3>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" class="form-control"
+                       placeholder="Email"
+                       @bind="_loginModel.Email" />
+                <ValidationMessage For="() => _loginModel.Email" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input id="password" name="password" type="password" class="form-control"
+                       placeholder="Senha"
+                       @bind="_loginModel.Password" />
+                <ValidationMessage For="() => _loginModel.Password" />
+            </div>
+
+            <div class="form-row remember-row">
+                <input id="remember" name="remember" type="checkbox"
+                       @bind="_loginModel.Remember" />
+                <label for="remember">Lembrar credenciais</label>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="error-label">@_errorMessage</div>
+            }
+
+            <div class="form-row">
+                <button class="btn-login" type="submit" disabled="@_isSubmitting">
+                    @if (_isSubmitting)
+                    {
+                        <span class="spinner"></span>
+                        <span class="sr-only">Entrando...</span>
+                    }
+                    else
+                    {
+                        <span>Entrar</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+
+</EditForm>
+
+@code {
+    private LoginModel _loginModel = new();
+    private bool _isSubmitting;
+    private string? _errorMessage;
+
+    private async Task HandleValidSubmit()
+    {
+        _errorMessage = null;
+        _isSubmitting = true;
+        bool navigated = false;
+
+        try
+        {
+            Console.WriteLine("DEBUG -> Submitting login form");
+            Console.WriteLine("DEBUG -> " + _loginModel.Email);
+            _loginModel.Email = "dev@dev.com";
+            _loginModel.Password = "dev";
+            Console.WriteLine("DEBUG -> " + _loginModel.Email);
+
+            // Call API /login endpoint
+            var payload = new { email = _loginModel.Email, password = _loginModel.Password };
+            Console.WriteLine("DEBUG -> " + payload + _loginModel?.Email?.Length + _loginModel?.Password?.Length);
+
+            var response = await Http.PostAsJsonAsync("/login", payload);
+            Console.WriteLine("DEBUG -> " + response.StatusCode);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await InvokeAsync(() => NavigationManager.NavigateTo("/weather"));
+                
+            }
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                _errorMessage = "Email ou senha incorretos.";
+                return;
+            }
+            else
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                _errorMessage = $"Erro na autenticação: {(int)response.StatusCode} - {text}";
+                Console.WriteLine("DEBUG -> " + _errorMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            if (!navigated)
+            {
+                _isSubmitting = false;
+            }        }
+    }
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject]
+    private HttpClient Http { get; set; } = default!;
+}
