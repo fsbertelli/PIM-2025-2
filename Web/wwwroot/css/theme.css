@@ -1,0 +1,167 @@
+﻿/* Bootstrap utility overrides - map common bootstrap classes to theme tokens */
+.bg-primary { background-color: var(--color-primary) !important; }
+.bg-primary.text-white, .text-white.bg-primary { color: var(--color-on-primary) !important; }
+.text-white { color: var(--color-on-primary) !important; }
+.btn-primary { background-color: var(--color-primary) !important; color: var(--color-on-primary) !important; border-color: var(--color-primary) !important; }
+.btn-primary:hover, .btn-primary:focus { background-color: var(--color-primary-dark) !important; border-color: var(--color-primary-dark) !important; }
+.card-header.bg-primary { background-color: var(--color-primary) !important; color: var(--color-on-primary) !important; }
+
+/* ensure link utilities use primary color */
+.text-primary { color: var(--color-primary) !important; }
+.bg-light { background-color: var(--color-surface) !important; }
+
+/* small helpers */
+.border-primary { border-color: var(--color-primary) !important; }
+
+/* End bootstrap overrides */
+
+/* existing theme below... */
+:root{
+  /* Primary */
+  --color-primary: #1976D2;
+  --color-primary-dark: #1565C0;
+  --color-primary-rgb: 25,118,210;
+  --color-on-primary: #ffffff;
+
+  /* Secondary */
+  --color-secondary: #0288D1;
+  --color-on-secondary: #ffffff;
+
+  /* Background / Surface */
+  --color-background: #F7FAFC;
+  --color-on-background: #0F1724;
+  --color-surface: #ffffff;
+  --color-on-surface: #111827;
+  --color-surface-variant: #F1F5F9;
+  --color-on-surface-variant: #374151;
+
+  /* Outline / Divider */
+  --color-outline: #CBD5E1;
+
+  /* Error */
+  --color-error: #B00020;
+  --color-on-error: #ffffff;
+
+  /* Tertiary */
+  --color-tertiary: #FFB300;
+  --color-on-tertiary: #111827;
+
+  /* Elevation */
+  --elevation-1: 0 1px 2px rgba(16,24,40,0.04);
+  --elevation-2: 0 8px 20px rgba(16,24,40,0.08);
+
+  /* Focus ring */
+  --focus-ring: rgba(25,118,210,0.14);
+}
+
+/* Global reset for the app area used by layout */
+html,body{
+  height:100%;
+  margin:0;
+  padding:0;
+  background:var(--color-background);
+  color:var(--color-on-background);
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* Layout */
+.page{ display:flex; flex-direction:column; min-height:100vh; }
+
+/* Ensure main content stretches full width below navbar */
+main { flex: 1 1 auto; width: 100%; }
+
+/* Keep container spacing for navbar consistent */
+.navbar .container-fluid.px-4 { padding-left: 1rem; padding-right: 1rem; }
+
+/* NavMenu styles */
+#main-navbar { background: transparent; }
+.navbar-brand{ color:var(--color-on-surface); font-weight:600; display:flex; align-items:center; gap:8px; }
+
+.sidebar-nav { padding-top:1rem; }
+.sidebar-nav .nav-link{ color:var(--color-on-surface); padding:10px 14px; margin:6px 8px; border-radius:8px; display:block; transition: background-color .12s ease, color .12s ease; }
+.sidebar-nav .nav-link .bi{ margin-right:8px; }
+.sidebar-nav .nav-link:hover{ background-color:#E3F2FD; color:var(--color-primary-dark); text-decoration:none; }
+.sidebar-nav .nav-link.active{ background-color:#BBDEFB; color:#0D47A1; }
+
+/* Login styles (re-usable, matches existing component classes) */
+.login-page{ display:flex; justify-content:center; align-items:center; min-height:100vh; padding:0; }
+.login-card{ width:100%; max-width:480px; background:var(--color-surface); border-radius:12px; padding:32px; box-shadow:var(--elevation-2); border:1px solid var(--color-outline); }
+.login-card h3{ margin:0 0 18px 0; color:var(--color-primary-dark); }
+.form-control{ width:100%; height:44px; padding:10px 12px; border-radius:8px; border:1px solid var(--color-outline); box-sizing:border-box; }
+.form-control:focus{ outline: none; box-shadow:0 0 0 6px var(--focus-ring); border-color:var(--color-primary); }
+.remember-row label{ color:var(--color-on-surface-variant); }
+.btn-login{ background:linear-gradient(90deg,var(--color-primary),var(--color-primary-dark)); color:var(--color-on-primary); border:none; padding:12px 16px; border-radius:8px; font-weight:600; cursor:pointer; }
+.btn-login:hover{ background:var(--color-primary-dark); }
+
+/* Card (tickets) - matches Bootstrap cards but ensures token usage */
+.card{ background:var(--color-surface); border:1px solid var(--color-outline); border-radius:8px; box-shadow:var(--elevation-1); }
+.card-header{ background:var(--color-primary); color:var(--color-on-primary); border-top-left-radius:8px; border-top-right-radius:8px; padding:12px 16px; }
+.card-body{ padding:16px; color:var(--color-on-surface); }
+.card-footer{ background:transparent; padding:12px 16px; border-top:1px solid rgba(16,24,40,0.04); }
+
+.btn-primary{ background:var(--color-primary); color:var(--color-on-primary); border:none; padding:8px 12px; border-radius:6px; }
+.btn-primary:hover{ background:var(--color-primary-dark); }
+.btn-outline-primary{ background:transparent; border:1px solid var(--color-primary); color:var(--color-primary); }
+
+/* Inputs & forms */
+label{ color:var(--color-on-surface-variant); font-weight:500; }
+.input-placeholder{ color:rgba(17,24,39,0.45); }
+.form-row{ margin-bottom:12px; }
+
+/* Dialogs and snackbars */
+.dialog{ background:var(--color-surface); color:var(--color-on-surface); border-radius:8px; padding:16px; box-shadow:var(--elevation-2); }
+.snackbar{ background:var(--color-surface-variant); color:var(--color-on-surface-variant); padding:12px 16px; border-radius:8px; }
+
+/* Utilities */
+.text-muted{ color:var(--color-on-surface-variant); }
+.small{ font-size:0.9rem; }
+.mt-2{ margin-top:8px; }
+.mb-2{ margin-bottom:8px; }
+
+/* Responsive tweaks */
+@media (max-width:640px){ .content{ padding:16px; } .sidebar{ width:100%; position:relative; height:auto; } .page{ flex-direction:column; } }
+
+/* Navbar (dark primary) overrides - use theme tokens */
+.navbar-dark.bg-primary {
+  background-color: var(--color-primary) !important;
+}
+.navbar-dark .navbar-brand {
+  color: var(--color-on-primary) !important;
+  font-weight: 700;
+}
+.navbar-dark .navbar-nav .nav-link {
+  color: rgba(255,255,255,0.95) !important;
+  padding: 8px 10px !important;
+  font-weight: 500;
+}
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link:focus {
+  color: var(--color-on-primary) !important;
+  background-color: rgba(255,255,255,0.06) !important;
+  border-radius: 6px;
+}
+/* stronger active indicator: subtle left accent + heavier text */
+.navbar-dark .navbar-nav .nav-link.active {
+  color: var(--color-on-primary) !important;
+  background-color: rgba(255,255,255,0.06) !important;
+  box-shadow: inset 4px 0 0 rgba(255,255,255,0.14);
+  font-weight: 700;
+  border-radius: 6px;
+}
+
+/* mobile: use bottom border as indicator for active */
+@media (max-width: 767.98px) {
+  .navbar-dark .navbar-nav .nav-link.active {
+    box-shadow: none;
+    border-bottom: 3px solid rgba(255,255,255,0.18) !important;
+  }
+}
+
+/* ensure toggler icon is visible on primary bg */
+.navbar-dark .navbar-toggler-icon {
+  filter: invert(100%);
+}
+
+/* end navbar overrides */

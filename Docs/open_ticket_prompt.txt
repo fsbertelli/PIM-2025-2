@@ -1,0 +1,111 @@
+﻿Crie uma implementação completa (Java + XML) de uma tela chamada "OpenTicket" que permita ao usuário abrir um chamado composto por texto (obrigatório) e uma imagem opcional. Antes de enviar o chamado, o app deve verificar se o departamento do usuário logado permite a abertura de chamados (campo `AcceptTicket` do model `Department`). Se a verificação indicar que não é permitido, o app deve bloquear o envio e exibir um diálogo claro dizendo ao usuário para contatar o suporte técnico.
+
+Gere os arquivos separados conforme listados e escreva comentários explicando os pontos configuráveis (baseURL, origem do `userSourceId`, como ativar autenticação). Use AndroidX, Retrofit+OkHttp+Gson, Glide para preview, e LiveData/ViewModel para lógica. Use Java (não Kotlin) e XML (não Compose).
+
+Contexto e endpoints (usar exatamente estes caminhos / nomes)
+- Base URL default para emulador: `ApiConfig.BASE_URL = "http://10.0.2.2:5000"`
+- `GET /departments/{id}` — obtém `Department` JSON; modelo inclui `bool AcceptTicket` (nome exato).
+- `POST /tickettransactions/upload` — multipart/form-data: `file` (imagem opcional), `userSourceId` (int), `userTargetId` (int; enviar 0 quando não atribuído), `ticketId` (int), `body` (string).
+- `POST /tickettransactions` — fallback JSON: `CreateTicketTransactionDto` { userSourceId:int, userTargetId:int, ticketId:int, body?:string, attachBase64?:string }.
+- Observação: `userSourceId` vem do usuário logado (SessionManager / SharedPrefs / objeto retornado no `POST /login`). Documente isso no código.
+
+Regras de comportamento exigidas (específicas)
+1. UI mínima (arquivo `res/layout/activity_open_ticket.xml` — use ConstraintLayout ou LinearLayout):
+   - `EditText` multiline id=`@+id/edittext_body` (hint: "Descreva o problema...") — obrigatório.
+   - `Button` id=`@+id/btn_choose_image` text "Escolher imagem".
+   - `ImageView` id=`@+id/image_preview` (thumbnail; GONE por padrão).
+   - `Button` id=`@+id/btn_remove_image` text "Remover" (aparece só se imagem selecionada).
+   - `Switch` id=`@+id/switch_use_base64` text "Enviar como base64" (default OFF).
+   - `Button` id=`@+id/btn_submit` text "Abrir Chamado" (desabilitado enquanto o texto obrigatório estiver vazio).
+   - `ProgressBar` id=`@+id/progress` GONE inicialmente.
+   - `TextView` id=`@+id/text_result` para mostrar `attachUrl` ou mensagens de erro/sucesso.
+
+2. `Activity` Java: `com.example.app.ui.OpenTicketActivity` (`OpenTicketActivity.java`)
+   - Infla `activity_open_ticket.xml`.
+   - Recupera `userSourceId` (usuário logado) e `ticketId` (opcional) de onde o app mantém sessão; coloque comentários indicando onde ajustar.
+   - Inicializa `OpenTicketViewModel` via `ViewModelProvider`.
+   - Implementa `ActivityResultLauncher` para `Intent.ACTION_GET_CONTENT` com tipo `"image/*"`.
+   - Ao selecionar imagem: enviar `Uri` para ViewModel; exibir preview com Glide; habilitar botão remover.
+   - Ao clicar `btn_submit`: validar `edittext_body` (não vazio). Em seguida chamar `viewModel.checkDepartmentAndSubmit(userSourceId, ticketId, useBase64Flag)`.
+   - Observa LiveData: `isLoading` (mostrar/ocultar `ProgressBar`), `errorMessage` (mostrar `Toast`/Dialog), e `successDto` (mostrar `attachUrl` em `text_result` e botão abrir URL com `Intent.ACTION_VIEW`).
+   - Mensagem de sucesso deve mostrar link completo: `ApiConfig.BASE_URL + attachUrl` (documente onde alterar baseURL).
+
+3. `ViewModel` Java: `com.example.app.viewmodel.OpenTicketViewModel` (`OpenTicketViewModel.java`)
+   - LiveData/MutableLiveData: `imageUri:MutableLiveData<Uri>`, `body:MutableLiveData<String>`, `isLoading`, `errorMessage`, `successDto`.
+   - Método público `checkDepartmentAndSubmit(int userSourceId, int ticketId, boolean useBase64)`:
+     - Ler `deptId` do usuário logado (SessionManager ou injeção; documente).
+     - Chamar `ApiService.getDepartment(deptId)` (Retrofit `Call<Department>`).
+       - Se success e `AcceptTicket == true` → chamar `submit(...)` (multipart ou base64).
+       - Se success e `AcceptTicket == false` → postar `errorMessage` / emitir evento para Activity abrir `AlertDialog` com mensagem: “Seu departamento não permite abertura de chamados. Contate o suporte técnico.” NÃO prosseguir com upload.
+       - Se failure (rede/500/timeout) → postar `errorMessage` e expor opção de retry (LiveData ou callback).
+   - Métodos internos:
+     - `submitMultipart(...)` — se `imageUri` não nulo:
+       - Usar `ImageUtils.compressAndResizeBitmap(...)` para garantir abaixo de 5 MB (ou reduzir para max width 1280).
+       - Criar `MultipartBody.Part` para `file` e `RequestBody` para `userSourceId`, `userTargetId=0`, `ticketId`, `body`.
+       - Chamar `ApiService.uploadTicketTransaction(...)` com Retrofit `enqueue`.
+     - `submitBase64(...)` — ler bytes via `ImageUtils.readBytesFromUri`, converter para base64 com prefixo `data:<mime>;base64,`, montar `CreateTicketTransactionDto` e chamar `ApiService.createTicketTransaction(...)`.
+     - Se não houver imagem selecionada: usar JSON endpoint (`createTicketTransaction`) sem `attachBase64` (ou com null).
+   - Atualizar LiveData conforme resposta: `isLoading`, `successDto`, `errorMessage`.
+
+4. `ApiService` e `ApiClient` Java (pacote `com.example.app.network`)
+   - Retrofit interface `ApiService.java`:
+     - `@GET("/departments/{id}") Call<Department> getDepartment(@Path("id") int id);`
+     - `@Multipart @POST("/tickettransactions/upload") Call<TicketTransactionDto> uploadTicketTransaction(@Part MultipartBody.Part file, @Part("userSourceId") RequestBody userSourceId, @Part("userTargetId") RequestBody userTargetId, @Part("ticketId") RequestBody ticketId, @Part("body") RequestBody body);`
+     - `@POST("/tickettransactions") Call<TicketTransactionDto> createTicketTransaction(@Body CreateTicketTransactionDto dto);`
+   - `ApiClient` builder com `ApiConfig.BASE_URL` (commente onde alterar para dispositivo real).
+   - Comente como adicionar Authorization Bearer header via OkHttp Interceptor se necessário.
+
+5. Models Java (`com.example.app.model`)
+   - `Department.java` { int id; String name; boolean AcceptTicket; getters/setters } (nome e campo `AcceptTicket` exatamente como no backend).
+   - `CreateTicketTransactionDto.java` { int userSourceId; int userTargetId; int ticketId; String body; String attachBase64; }
+   - `TicketTransactionDto.java` { String id; int userSourceId; int userTargetId; int ticketId; String body; String attachUrl; String createdAt; }
+   - `UserSession` / `SessionManager` comentário: onde buscar `user.deptId` e `user.id`.
+
+6. `ImageUtils` Java (`com.example.app.util.ImageUtils`)
+   - `static byte[] readBytesFromUri(Context, Uri)`
+   - `static byte[] compressAndResizeBitmap(Context, Uri, int maxWidth)` — resample e compress to JPEG to meet <=5MB or maxWidth 1280.
+   - `static String toBase64(byte[] bytes, String mimeType, boolean withDataUri)` — retorna string base64 com prefixo quando `withDataUri==true`.
+   - Detectar mimeType via `ContentResolver.getType(uri)`.
+
+7. UX / validações / mensagens
+   - Validar `body` não vazio; se vazio, mostrar erro inline e manter `btn_submit` desabilitado.
+   - Para multipart: validar mime ∈ allowed list `{image/png,image/jpeg,image/jpg,image/gif,image/webp}`.
+   - Para multipart: compress automaticamente se >5MB; se compress não reduzir abaixo do limite, informar usuário e sugerir usar base64 (toggle).
+   - Exibir `AlertDialog` quando `AcceptTicket == false` com:
+     - Título: “Permissão negada”
+     - Mensagem: “Seu departamento não permite abertura de chamados. Contate o suporte técnico.”
+     - Botões: “Entendi” (fecha) e “Contatar suporte” (opcional — abrir e-mail/telefone se disponível).
+   - Em caso de network error ao checar departamento, mostrar diálogo com “Tentar novamente” e “Cancelar”.
+
+8. Gradle / Manifest snippets (incluir como comentário/README)
+   - app/build.gradle dependencies:
+     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+     implementation 'com.squareup.okhttp3:okhttp:4.11.0'
+     implementation 'com.github.bumptech.glide:glide:4.15.1'
+     annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
+     implementation 'androidx.lifecycle:lifecycle-viewmodel:2.6.2'
+     implementation 'androidx.lifecycle:lifecycle-livedata:2.6.2'
+   - AndroidManifest.xml:
+     `<uses-permission android:name="android.permission.INTERNET"/>`
+   - Documente `ApiConfig.BASE_URL = "http://10.0.2.2:5000"` e instruções para mudar para IP real.
+
+9. Exemplos curl (colocar no README gerado):
+   - Checar departamento:
+     curl -v GET "http://10.0.2.2:5000/departments/3"
+   - Enviar multipart (quando dept permite):
+     curl -X POST "http://10.0.2.2:5000/tickettransactions/upload" -F "file=@/caminho/imagem.jpg;type=image/jpeg" -F "userSourceId=5" -F "userTargetId=0" -F "ticketId=3" -F "body=Texto do chamado"
+   - Enviar JSON base64:
+     curl -X POST "http://10.0.2.2:5000/tickettransactions" -H "Content-Type: application/json" -d '{"userSourceId":5,"userTargetId":0,"ticketId":3,"body":"Texto","attachBase64":"data:image/jpeg;base64,/9j/4AAQ..."}'
+
+Notas finais / comentários que o Copilot deve incluir no código gerado
+- Explique onde `userSourceId` e `deptId` devem ser obtidos (SessionManager/SharedPrefs após login).
+- Explique que atualmente o app envia `userTargetId = 0` para indicar “não atribuído” e recomende alterar o backend para aceitar `userTargetId` nullable (melhoria).
+- Indique claramente no código onde alterar `ApiConfig.BASE_URL` e como adicionar `Authorization` header via OkHttp Interceptor se houver autenticação.
+- Comente sobre caching do resultado `GET /departments/{id}` (opcional: cache por X minutos) caso se deseje diminuir chamadas, mas execute a checagem sempre antes do envio por segurança.
+
+Entrega esperada do Copilot
+- Geração de arquivos Java + XML: `activity_open_ticket.xml`, `OpenTicketActivity.java`, `OpenTicketViewModel.java`, `ApiService.java`, `ApiClient.java`, `CreateTicketTransactionDto.java`, `TicketTransactionDto.java`, `Department.java` (model), `ImageUtils.java`, e um `README.md` curto com instruções de teste.
+- Código claro, com comentários explicando pontos configuráveis, mensagens de erro, e instruções de onde adaptar para autenticação.
+
+--- fim do prompt ---

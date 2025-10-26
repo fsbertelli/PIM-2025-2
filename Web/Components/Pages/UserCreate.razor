@@ -1,80 +1,122 @@
 ﻿@page "/users/create"
 @using Web.Models
-@using System.Net
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
-<UserNav />
 
-<h3>Criar Usuário</h3>
+<h3 class="mb-3"><span class="bi bi-person-plus-fill me-2"></span>Criar Usuário</h3>
 
 @if (!string.IsNullOrEmpty(_errorMessage))
 {
-    <div class="error-label">@_errorMessage</div>
+    <div class="alert alert-danger" role="alert">
+        <span class="bi bi-exclamation-triangle me-2"></span>@_errorMessage
+    </div>
 }
 
-<EditForm Model="_createModel" OnValidSubmit="HandleCreateSubmit" FormName="CreateUserForm">
-    <DataAnnotationsValidator />
-
-    <div class="form-group">
-        <label>Nome</label>
-        <input class="form-control" @bind="_createModel.Name" />
-        <ValidationMessage For="() => _createModel.Name" />
+@if (_isLoadingLookups)
+{
+    <div class="d-flex align-items-center text-muted">
+        <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+        Carregando dados...
     </div>
+}
+else
+{
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-8">
+            <EditForm Model="_createModel" OnValidSubmit="HandleCreateSubmit" FormName="CreateUserForm">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger mb-3" />
 
-    <div class="form-group">
-        <label>Email</label>
-        <input class="form-control" @bind="_createModel.Email" />
-        <ValidationMessage For="() => _createModel.Email" />
-    </div>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <h5 class="section-title">Informações básicas</h5>
+                        <hr class="section-divider" />
+                    </div>
 
-    <div class="form-group">
-        <label>Senha</label>
-        <input type="password" class="form-control" @bind="_createModel.Password" />
-        <ValidationMessage For="() => _createModel.Password" />
-    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nome <span class="text-danger">*</span></label>
+                        <InputText class="form-control" @bind-Value="_createModel.Name" placeholder="Digite o nome completo" />
+                        <ValidationMessage For="() => _createModel.Name" />
+                    </div>
 
-    <div class="form-group">
-        <label>Departamento</label>
-        <select class="form-control" @bind="_createModel.DeptId">
-            <option value="0">-- selecione --</option>
-            @foreach (var d in _depts)
-            {
-                <option value="@d.Id">@d.Name</option>
-            }
-        </select>
-        <ValidationMessage For="() => _createModel.DeptId" />
-    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email <span class="text-danger">*</span></label>
+                        <InputText class="form-control" @bind-Value="_createModel.Email" placeholder="email@exemplo.com" />
+                        <small class="form-text text-muted">Usado para login e comunicações.</small>
+                        <ValidationMessage For="() => _createModel.Email" />
+                    </div>
 
-    <div class="form-group">
-        <label>Perfil</label>
-        <select class="form-control" @bind="_createModel.ProfileId">
-            <option value="0">-- selecione --</option>
-            @foreach (var p in _profiles)
-            {
-                <option value="@p.Id">@p.Name</option>
-            }
-        </select>
-        <ValidationMessage For="() => _createModel.ProfileId" />
-    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Senha <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <InputText class="form-control" type="@(_showPassword ? "text" : "password")" @bind-Value="_createModel.Password" placeholder="Mínimo de 6 caracteres" />
+                            <button type="button" class="btn btn-outline-secondary" @onclick="TogglePassword" title="Mostrar/ocultar senha">
+                                <span class="bi @( _showPassword ? "bi-eye-slash" : "bi-eye" )"></span>
+                            </button>
+                        </div>
+                        <small class="text-muted">A senha deve ter entre 6 e 100 caracteres.</small>
+                        <ValidationMessage For="() => _createModel.Password" />
+                    </div>
 
-    <div class="form-group">
-        <label>Status</label>
-        <select class="form-control" @bind="_createModel.UserStatusId">
-            <option value="0">-- selecione --</option>
-            @foreach (var s in _statuses)
-            {
-                <option value="@s.Id">@s.Name</option>
-            }
-        </select>
-        <ValidationMessage For="() => _createModel.UserStatusId" />
-    </div>
+                    <div class="col-12 mt-2">
+                        <h5 class="section-title">Vinculações</h5>
+                        <hr class="section-divider" />
+                    </div>
 
-    <div class="form-actions">
-        <button class="btn btn-primary" type="submit">Criar</button>
-        <button class="btn" type="button" @onclick="GoBack">Voltar</button>
+                    <div class="col-md-6">
+                        <label class="form-label">Departamento <span class="text-danger">*</span></label>
+                        <InputSelect class="form-select" @bind-Value="_createModel.DeptId">
+                            <option value="0">-- selecione --</option>
+                            @foreach (var d in _depts)
+                            {
+                                <option value="@d.Id">@d.Name</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="() => _createModel.DeptId" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Perfil <span class="text-danger">*</span></label>
+                        <InputSelect class="form-select" @bind-Value="_createModel.ProfileId">
+                            <option value="0">-- selecione --</option>
+                            @foreach (var p in _profiles)
+                            {
+                                <option value="@p.Id">@p.Name</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="() => _createModel.ProfileId" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Status <span class="text-danger">*</span></label>
+                        <InputSelect class="form-select" @bind-Value="_createModel.UserStatusId">
+                            <option value="0">-- selecione --</option>
+                            @foreach (var s in _statuses)
+                            {
+                                <option value="@s.Id">@s.Name</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="() => _createModel.UserStatusId" />
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button class="btn btn-secondary" type="button" @onclick="GoBack">
+                        <span class="bi bi-arrow-left me-1"></span> Voltar
+                    </button>
+                    <button class="btn btn-primary" type="submit" disabled="@_isSubmitting">
+                        @if (_isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        }
+                        <span class="bi bi-check2-circle me-1"></span> Criar
+                    </button>
+                </div>
+            </EditForm>
+        </div>
     </div>
-</EditForm>
+}
 
 @code {
     private CreateUserDto _createModel = new();
@@ -82,10 +124,14 @@
     private List<UserProfileDto> _profiles = new();
     private List<UserStatusDto> _statuses = new();
     private string? _errorMessage;
+    private bool _isLoadingLookups = true;
+    private bool _isSubmitting = false;
+    private bool _showPassword = false;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadLookupAsync();
+        _isLoadingLookups = false;
     }
 
     private async Task LoadLookupAsync()
@@ -106,6 +152,23 @@
     {
         _errorMessage = null;
 
+        // validações complementares para selects (evitar valor 0)
+        if (_createModel.DeptId <= 0)
+        {
+            _errorMessage = "Selecione um Departamento.";
+            return;
+        }
+        if (_createModel.ProfileId <= 0)
+        {
+            _errorMessage = "Selecione um Perfil.";
+            return;
+        }
+        if (_createModel.UserStatusId <= 0)
+        {
+            _errorMessage = "Selecione um Status.";
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(_createModel.Name))
         {
             _errorMessage = "O campo Nome é obrigatório.";
@@ -124,6 +187,8 @@
 
         try
         {
+            _isSubmitting = true;
+
             var payload = new
             {
                 Name = _createModel.Name?.Trim(),
@@ -176,7 +241,13 @@
         {
             _errorMessage = ex.Message;
         }
+        finally
+        {
+            _isSubmitting = false;
+        }
     }
+
+    private void TogglePassword() => _showPassword = !_showPassword;
 
     private void GoBack()
     {

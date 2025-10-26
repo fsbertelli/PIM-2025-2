@@ -1,7 +1,9 @@
 ﻿@page "/login"
 @page "/"
+@layout LoginLayout
 @using Web.Models
 @using System.Net
+@using Web.Components.Layout
 @rendermode InteractiveServer
 
 <EditForm Model="_loginModel" OnValidSubmit="HandleValidSubmit" FormName="LoginForm">
@@ -9,7 +11,7 @@
 
     <div class="login-page">
         <div class="login-card">
-            <h3>Entrar</h3>
+            <h3>Sigma - Web</h3>
 
             <div class="form-group">
                 <label for="email">Email</label>
@@ -51,13 +53,8 @@
                     }
                 </button>
             </div>
-
-            <div class="form-row">
-                <a class="btn-link" href="/users/create">Cadastrar novo usuário</a>
-            </div>
         </div>
     </div>
-
 </EditForm>
 
 @code {
@@ -72,6 +69,26 @@
     [Inject]
     private IJSRuntime Js { get; set; } = default!;
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var savedEmail = await Js.InvokeAsync<string>("localStorage.getItem", "savedEmail");
+            var savedPassword = await Js.InvokeAsync<string>("localStorage.getItem", "savedPassword");
+            if (!string.IsNullOrEmpty(savedEmail))
+            {
+                _loginModel.Email = savedEmail;
+                _loginModel.Remember = true;
+                StateHasChanged();
+            }
+            if (!string.IsNullOrEmpty(savedPassword))
+            {
+                _loginModel.Password = savedPassword;
+                StateHasChanged();
+            }
+        }
+    }
+
     private async Task HandleValidSubmit()
     {
         _errorMessage = null;
@@ -85,9 +102,28 @@
 
             if (response.IsSuccessStatusCode)
             {
+                var user = await response.Content.ReadFromJsonAsync<UserDto>();
+                if (user == null || user.Department?.Name != "Suporte")
+                {
+                    _errorMessage = "Email ou senha incorretos.";
+                    return;
+                }
+
                 await Js.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "1");
+                await Js.InvokeVoidAsync("localStorage.setItem", "savedName", user.Name);
+                await Js.InvokeVoidAsync("localStorage.setItem", "userId", user.Id.ToString());
+                if (_loginModel.Remember)
+                {
+                    await Js.InvokeVoidAsync("localStorage.setItem", "savedEmail", _loginModel.Email);
+                    await Js.InvokeVoidAsync("localStorage.setItem", "savedPassword", _loginModel.Password);
+                }
+                else
+                {
+                    await Js.InvokeVoidAsync("localStorage.removeItem", "savedEmail");
+                    await Js.InvokeVoidAsync("localStorage.removeItem", "savedPassword");
+                }
                 navigated = true;
-                await InvokeAsync(() => NavigationManager.NavigateTo("/users"));
+                await InvokeAsync(() => NavigationManager.NavigateTo("/tickets"));
                 return;
             }
             else if (response.StatusCode == HttpStatusCode.Unauthorized)

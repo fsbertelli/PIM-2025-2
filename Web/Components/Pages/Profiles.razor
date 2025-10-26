@@ -1,0 +1,135 @@
+﻿@page "/profiles"
+@using Web.Models
+@inject HttpClient Http
+@inject IJSRuntime Js
+@rendermode InteractiveServer
+
+<style>
+.list-container { display:flex; flex-direction:column; gap:1rem; }
+.search-row { display:flex; gap:0.5rem; align-items:center; margin-bottom:0.75rem; }
+.search-row .form-control { flex:1; }
+.table thead { background:#f8f9fa; }
+</style>
+
+<h3>Perfis</h3>
+
+<div class="list-container">
+    <div class="search-row">
+        <input class="form-control" placeholder="Buscar por nome" value="@_search" @oninput="OnSearchInput" />
+        <button class="btn" @onclick="ClearFilter">Limpar</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="error-label">@_errorMessage</div>
+    }
+
+    @if (_isLoading)
+    {
+        <div class="d-flex align-items-center text-muted">
+            <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+            Carregando dados...
+        </div>
+    }
+    else
+    {
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Nome</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in _filtered)
+                {
+                    <tr>
+                        <td>@p.Id</td>
+                        <td>@p.Name</td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteProfile(p.Id)">Remover</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<UserProfileDto> _items = new();
+    private List<UserProfileDto> _filtered = new();
+    private string _search = string.Empty;
+    private bool _isLoading = true;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        try
+        {
+            _items = await Http.GetFromJsonAsync<List<UserProfileDto>>("/profiles") ?? new();
+            _filtered = _items.ToList();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        _search = e?.Value?.ToString() ?? string.Empty;
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        var q = _search.Trim().ToLowerInvariant();
+        _filtered = string.IsNullOrEmpty(q)
+            ? _items.ToList()
+            : _items.Where(x => (x.Name ?? string.Empty).ToLower().Contains(q)).ToList();
+        StateHasChanged();
+    }
+
+    private void ClearFilter()
+    {
+        _search = string.Empty;
+        _filtered = _items.ToList();
+    }
+
+    private async Task DeleteProfile(int id)
+    {
+        var ok = await Js.InvokeAsync<bool>("confirm", $"Confirma remoção do perfil {id}?\nA ação não pode ser desfeita.");
+        if (!ok) return;
+        try
+        {
+            var resp = await Http.DeleteAsync($"/profiles/{id}");
+            if (resp.IsSuccessStatusCode)
+            {
+                await LoadDataAsync();
+            }
+            else
+            {
+                var text = await resp.Content.ReadAsStringAsync();
+                _errorMessage = $"Erro ao remover: {(int)resp.StatusCode} - {text}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+}
+

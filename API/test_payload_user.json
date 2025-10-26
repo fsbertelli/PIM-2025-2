@@ -1,0 +1,9 @@
+﻿{
+  "Name": "Teste Usuario",
+  "Email": "teste@example.com",
+  "Password": "Senha123",
+  "DeptId": 1,
+  "UserStatusId": 1,
+  "ProfileId": 1
+}
+
