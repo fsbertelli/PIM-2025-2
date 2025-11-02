@@ -16,7 +16,7 @@ public static class TicketEndpoints
             try
             {
                 if (string.IsNullOrWhiteSpace(request.Body))
-                    return Results.BadRequest("A mensagem (body) é obrigatória.");
+                    return Results.BadRequest("A mensagem é obrigatória.");
 
                 var ticket = await ticketService.CreateTicketWithDefaultsAsync(request.UserSourceId, request.Body, env, db, request.DeptTargetId);
 

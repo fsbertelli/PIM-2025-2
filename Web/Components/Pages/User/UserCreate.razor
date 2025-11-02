@@ -1,5 +1,6 @@
 ﻿@page "/users/create"
 @using Web.Models
+@using System.Net.Http.Json
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
@@ -27,7 +28,6 @@ else
             <EditForm Model="_createModel" OnValidSubmit="HandleCreateSubmit" FormName="CreateUserForm">
                 <DataAnnotationsValidator />
                 <ValidationSummary class="text-danger mb-3" />
-
                 <div class="row g-3">
                     <div class="col-12">
                         <h5 class="section-title">Informações básicas</h5>
@@ -102,10 +102,10 @@ else
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 mt-4">
-                    <button class="btn btn-secondary" type="button" @onclick="GoBack">
+                    <button class="btn btn-outline-secondary" type="button" @onclick="GoBack">
                         <span class="bi bi-arrow-left me-1"></span> Voltar
                     </button>
-                    <button class="btn btn-primary" type="submit" disabled="@_isSubmitting">
+                    <button class="btn btn-outline-success" type="submit" disabled="@_isSubmitting">
                         @if (_isSubmitting)
                         {
                             <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
@@ -114,6 +114,27 @@ else
                     </button>
                 </div>
             </EditForm>
+        </div>
+    </div>
+}
+
+@if (_showSuccessModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Usuário criado</h5>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>O usuário "<strong>@_createdName</strong>" foi criado com sucesso.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary" @onclick="CloseModal">Fechar</button>
+                    <button class="btn btn-outline-primary" @onclick="NavigateToList">Ver lista</button>
+                </div>
+            </div>
         </div>
     </div>
 }
@@ -127,6 +148,8 @@ else
     private bool _isLoadingLookups = true;
     private bool _isSubmitting = false;
     private bool _showPassword = false;
+    private bool _showSuccessModal;
+    private string? _createdName;
 
     protected override async Task OnInitializedAsync()
     {
@@ -203,7 +226,8 @@ else
             var response = await Http.PostAsJsonAsync("/users", payload);
             if (response.IsSuccessStatusCode)
             {
-                NavigationManager.NavigateTo("/users");
+                _createdName = payload.Name;
+                _showSuccessModal = true;
                 return;
             }
             else
@@ -248,8 +272,16 @@ else
     }
 
     private void TogglePassword() => _showPassword = !_showPassword;
+    private void GoBack() => NavigationManager.NavigateTo("/users");
 
-    private void GoBack()
+    private void CloseModal()
+    {
+        _showSuccessModal = false;
+        _createdName = null;
+        StateHasChanged();
+    }
+
+    private void NavigateToList()
     {
         NavigationManager.NavigateTo("/users");
     }

@@ -36,10 +36,8 @@ public partial class LoginPage : ContentPage
 
     private async void OnLoginClicked(object sender, EventArgs e)
     {
-        // Hide previous error
         ErrorLabel.IsVisible = false;
 
-        // Disable UI while request is in-flight
         LoginButton.IsEnabled = false;
         LoginActivity.IsRunning = true;
         LoginActivity.IsVisible = true;
@@ -67,7 +65,7 @@ public partial class LoginPage : ContentPage
                 if (resp.IsSuccessStatusCode)
                 {
                     var respJson = await resp.Content.ReadAsStringAsync();
-                    // Show server response to the user as feedback
+                    // Mostra um alert de feedback (REMOVER)
                     await DisplayAlert("Sucesso", $"Login efetuado com sucesso.\n{respJson}", "OK");
 
                     var remember = RememberCheckBox.IsChecked;

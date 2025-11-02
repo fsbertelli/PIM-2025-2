@@ -40,10 +40,10 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-4">
-                <button class="btn btn-secondary" type="button" @onclick="GoBack">
+                <button class="btn btn-outline-secondary" type="button" @onclick="GoBack">
                     <span class="bi bi-arrow-left me-1"></span> Voltar
                 </button>
-                <button class="btn btn-primary" type="submit" disabled="@_isSubmitting">
+                <button class="btn btn-outline-success" type="submit" disabled="@_isSubmitting">
                     @if (_isSubmitting)
                     {
                         <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
@@ -55,10 +55,33 @@
     </div>
 </EditForm>
 
+@if (_showSuccessModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Departamento criado</h5>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>O departamento "<strong>@_createdName</strong>" foi criado com sucesso.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary" @onclick="CloseModal">Fechar</button>
+                    <button class="btn btn-outline-primary" @onclick="NavigateToList">Ver lista</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private CreateDepartmentDto _model = new();
     private string? _errorMessage;
     private bool _isSubmitting;
+    private bool _showSuccessModal;
+    private string? _createdName;
 
     private async Task HandleSubmit()
     {
@@ -76,11 +99,27 @@
             var response = await Http.PostAsJsonAsync("/departments", payload);
             if (response.IsSuccessStatusCode)
             {
-                NavigationManager.NavigateTo("/");
+                _createdName = payload.Name;
+                _showSuccessModal = true;
                 return;
             }
             var text = await response.Content.ReadAsStringAsync();
-            _errorMessage = text;
+            try
+            {
+                var map = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(text);
+                if (map != null && (map.TryGetValue("message", out var m) || map.TryGetValue("Message", out m)))
+                {
+                    _errorMessage = m;
+                }
+                else
+                {
+                    _errorMessage = text;
+                }
+            }
+            catch
+            {
+                _errorMessage = text;
+            }
         }
         catch (Exception ex)
         {
@@ -93,4 +132,16 @@
     }
 
     private void GoBack() => NavigationManager.NavigateTo("/");
+
+    private void CloseModal()
+    {
+        _showSuccessModal = false;
+        _createdName = null;
+        StateHasChanged();
+    }
+
+    private void NavigateToList()
+    {
+        NavigationManager.NavigateTo("/departments");
+    }
 }

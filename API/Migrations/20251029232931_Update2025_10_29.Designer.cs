@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251025162122_UpdateTicketTransactionDeleteBehavior")]
-    partial class UpdateTicketTransactionDeleteBehavior
+    [Migration("20251029232931_Update2025_10_29")]
+    partial class Update2025_10_29
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -151,7 +151,7 @@ namespace API.Migrations
                     b.Property<int>("UserSourceId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserTargetId")
+                    b.Property<int?>("UserTargetId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -187,9 +187,7 @@ namespace API.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)")
-                        .HasColumnName("Password");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ProfileId")
                         .HasColumnType("int");
@@ -307,8 +305,7 @@ namespace API.Migrations
                     b.HasOne("API.Models.User", "UserTarget")
                         .WithMany()
                         .HasForeignKey("UserTargetId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Ticket");
 

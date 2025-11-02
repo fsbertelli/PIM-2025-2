@@ -6,22 +6,63 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace API.Migrations
 {
     /// <inheritdoc />
-    public partial class AddTicketTransactionAttach : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Users_Departments_DeptId",
-                table: "Users");
+            migrationBuilder.CreateTable(
+                name: "Departments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    AcceptTicket = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Departments", x => x.Id);
+                });
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_Users_UserProfiles_ProfileId",
-                table: "Users");
+            migrationBuilder.CreateTable(
+                name: "StatusTickets",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StatusTickets", x => x.Id);
+                });
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_Users_UserStatus_UserStatusId",
-                table: "Users");
+            migrationBuilder.CreateTable(
+                name: "UserProfiles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserProfiles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserStatus",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserStatus", x => x.Id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "Categories",
@@ -44,16 +85,39 @@ namespace API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "StatusTickets",
+                name: "Users",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Password = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    DeptId = table.Column<int>(type: "int", nullable: false),
+                    UserStatusId = table.Column<int>(type: "int", nullable: false),
+                    ProfileId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StatusTickets", x => x.Id);
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Users_Departments_DeptId",
+                        column: x => x.DeptId,
+                        principalTable: "Departments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Users_UserProfiles_ProfileId",
+                        column: x => x.ProfileId,
+                        principalTable: "UserProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Users_UserStatus_UserStatusId",
+                        column: x => x.UserStatusId,
+                        principalTable: "UserStatus",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -105,7 +169,7 @@ namespace API.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserSourceId = table.Column<int>(type: "int", nullable: false),
-                    UserTargetId = table.Column<int>(type: "int", nullable: false),
+                    UserTargetId = table.Column<int>(type: "int", nullable: true),
                     Body = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TicketId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -174,46 +238,25 @@ namespace API.Migrations
                 table: "TicketTransactions",
                 column: "UserTargetId");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Users_Departments_DeptId",
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_DeptId",
                 table: "Users",
-                column: "DeptId",
-                principalTable: "Departments",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                column: "DeptId");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Users_UserProfiles_ProfileId",
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_ProfileId",
                 table: "Users",
-                column: "ProfileId",
-                principalTable: "UserProfiles",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                column: "ProfileId");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Users_UserStatus_UserStatusId",
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_UserStatusId",
                 table: "Users",
-                column: "UserStatusId",
-                principalTable: "UserStatus",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                column: "UserStatusId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Users_Departments_DeptId",
-                table: "Users");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Users_UserProfiles_ProfileId",
-                table: "Users");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Users_UserStatus_UserStatusId",
-                table: "Users");
-
             migrationBuilder.DropTable(
                 name: "TicketTransactions");
 
@@ -226,29 +269,17 @@ namespace API.Migrations
             migrationBuilder.DropTable(
                 name: "StatusTickets");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Users_Departments_DeptId",
-                table: "Users",
-                column: "DeptId",
-                principalTable: "Departments",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+            migrationBuilder.DropTable(
+                name: "Users");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Users_UserProfiles_ProfileId",
-                table: "Users",
-                column: "ProfileId",
-                principalTable: "UserProfiles",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+            migrationBuilder.DropTable(
+                name: "Departments");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Users_UserStatus_UserStatusId",
-                table: "Users",
-                column: "UserStatusId",
-                principalTable: "UserStatus",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+            migrationBuilder.DropTable(
+                name: "UserProfiles");
+
+            migrationBuilder.DropTable(
+                name: "UserStatus");
         }
     }
 }

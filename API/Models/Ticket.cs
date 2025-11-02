@@ -12,8 +12,7 @@ public class Ticket
     [ForeignKey("User")]
     public int UserId { get; set; }
     public User? User { get; set; }
-
-    // Department target (where the ticket is directed)
+    
     [ForeignKey("Department")]
     public int DeptTargetId { get; set; }
     public Department? Department { get; set; }

@@ -9,6 +9,5 @@ public class CreateTicketTransactionDto
     public string? Body { get; set; }
     public int TicketId { get; set; }
     public DateTime? CreatedAt { get; set; }
-    // Base64 image payload. Can be a data URI (data:image/png;base64,...) or raw base64 string.
     public string? AttachBase64 { get; set; }
 }

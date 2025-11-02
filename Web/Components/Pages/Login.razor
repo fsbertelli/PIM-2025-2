@@ -134,7 +134,7 @@
             else
             {
                 var text = await response.Content.ReadAsStringAsync();
-                _errorMessage = $"Erro na autentica\u00e7\u00e3o: {(int)response.StatusCode} - {text}";
+                _errorMessage = $"Erro na autenticação: {(int)response.StatusCode} - {text}";
             }
         }
         catch (Exception ex)

@@ -1,7 +1,6 @@
-﻿@page "/profiles"
+﻿@page "/departments"
 @using Web.Models
 @inject HttpClient Http
-@inject IJSRuntime Js
 @rendermode InteractiveServer
 
 <style>
@@ -11,12 +10,12 @@
 .table thead { background:#f8f9fa; }
 </style>
 
-<h3>Perfis</h3>
+<h3>Departamentos</h3>
 
 <div class="list-container">
     <div class="search-row">
         <input class="form-control" placeholder="Buscar por nome" value="@_search" @oninput="OnSearchInput" />
-        <button class="btn" @onclick="ClearFilter">Limpar</button>
+        <button class="btn btn-outline-light" @onclick="ClearFilter">Limpar</button>
     </div>
 
     @if (!string.IsNullOrEmpty(_errorMessage))
@@ -38,17 +37,28 @@
                 <tr>
                     <th>Id</th>
                     <th>Nome</th>
+                    <th>Aceita Chamados</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var p in _filtered)
+                @foreach (var d in _filtered)
                 {
                     <tr>
-                        <td>@p.Id</td>
-                        <td>@p.Name</td>
+                        <td>@d.Id</td>
+                        <td>@d.Name</td>
                         <td>
-                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteProfile(p.Id)">Remover</button>
+                            @if (d.AcceptTicket)
+                            {
+                                <span class="badge bg-success">Sim</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Não</span>
+                            }
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => OpenConfirmDelete(d.Id, d.Name)">Remover</button>
                         </td>
                     </tr>
                 }
@@ -57,12 +67,39 @@
     }
 </div>
 
+@if (_showConfirmModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar remoção</h5>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="CloseConfirm"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Confirma remoção de "<strong>@_confirmName</strong>" (id: @_confirmId)?</p>
+                    <p class="text-muted">A ação não pode ser desfeita.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseConfirm">Cancelar</button>
+                    <button class="btn btn-danger" @onclick="ConfirmDelete">Remover</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-    private List<UserProfileDto> _items = new();
-    private List<UserProfileDto> _filtered = new();
+    private List<DepartmentDto> _items = new();
+    private List<DepartmentDto> _filtered = new();
     private string _search = string.Empty;
     private bool _isLoading = true;
     private string? _errorMessage;
+
+    // confirm modal state
+    private bool _showConfirmModal;
+    private int _confirmId;
+    private string? _confirmName;
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,7 +112,7 @@
         _errorMessage = null;
         try
         {
-            _items = await Http.GetFromJsonAsync<List<UserProfileDto>>("/profiles") ?? new();
+            _items = await Http.GetFromJsonAsync<List<DepartmentDto>>("/departments") ?? new();
             _filtered = _items.ToList();
         }
         catch (Exception ex)
@@ -109,13 +146,26 @@
         _filtered = _items.ToList();
     }
 
-    private async Task DeleteProfile(int id)
+    private void OpenConfirmDelete(int id, string? name)
     {
-        var ok = await Js.InvokeAsync<bool>("confirm", $"Confirma remoção do perfil {id}?\nA ação não pode ser desfeita.");
-        if (!ok) return;
+        _confirmId = id;
+        _confirmName = name;
+        _showConfirmModal = true;
+    }
+
+    private void CloseConfirm()
+    {
+        _showConfirmModal = false;
+        _confirmId = 0;
+        _confirmName = null;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        _showConfirmModal = false;
         try
         {
-            var resp = await Http.DeleteAsync($"/profiles/{id}");
+            var resp = await Http.DeleteAsync($"/departments/{_confirmId}");
             if (resp.IsSuccessStatusCode)
             {
                 await LoadDataAsync();
@@ -130,6 +180,10 @@
         {
             _errorMessage = ex.Message;
         }
+        finally
+        {
+            _confirmId = 0;
+            _confirmName = null;
+        }
     }
 }
-

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251025161910_AddTicketTransactionAttach")]
-    partial class AddTicketTransactionAttach
+    [Migration("20251027234758_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -151,7 +151,7 @@ namespace API.Migrations
                     b.Property<int>("UserSourceId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserTargetId")
+                    b.Property<int?>("UserTargetId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -295,20 +295,19 @@ namespace API.Migrations
                     b.HasOne("API.Models.Ticket", "Ticket")
                         .WithMany()
                         .HasForeignKey("TicketId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("API.Models.User", "UserSource")
                         .WithMany()
                         .HasForeignKey("UserSourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("API.Models.User", "UserTarget")
                         .WithMany()
                         .HasForeignKey("UserTargetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Ticket");
 

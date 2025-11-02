@@ -64,11 +64,10 @@ public class TicketTransactionService : ITicketTransactionService
                 throw new InvalidOperationException("Failed to save attachment.");
         }
 
-        // If assigning a target, move ticket to In Progress ("Em Progresso")
+        //  Faz o assign do ticketId no targetId e muda o status de aberto para atendendo
         if (request.UserTargetId.HasValue)
         {
-            var inProgress = await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Em Progresso")
-                              ?? await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Atendendo");
+            var inProgress = await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Atendendo");
             if (inProgress != null && ticket.StatusId != inProgress.Id)
             {
                 ticket.StatusId = inProgress.Id;
@@ -127,7 +126,6 @@ public class TicketTransactionService : ITicketTransactionService
         if (ticket is null)
             throw new ArgumentException("Ticket inválido: " + ticketId);
 
-        // If assigning a target, move ticket to In Progress ("Em Progresso")
         if (userTargetId.HasValue)
         {
             var inProgress = await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Em Progresso")
@@ -159,4 +157,3 @@ public class TicketTransactionService : ITicketTransactionService
     }
 }
 
-// ...existing code...
