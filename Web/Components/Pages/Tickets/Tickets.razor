@@ -194,7 +194,7 @@ else
                     @foreach (var tx in _transactions)
                     {
                         <div class="mb-3">
-                            <strong>@tx.UserSource?.Name</strong> (@tx.CreatedAt?.ToString("dd/MM/yyyy HH:mm"))<br />
+                            <strong>@tx.UserSource?.Name</strong> (@tx.CreatedAt?.ToString("dd/MM/yyyy HH:mm:ss"))<br />
                             @tx.Body
                             @if (!string.IsNullOrEmpty(tx.AttachUrl))
                             {
@@ -242,7 +242,6 @@ else
         try { _users = await Http.GetFromJsonAsync<List<UserDto>>("users") ?? new(); } catch { _users = new(); }
         try { _tickets = await Http.GetFromJsonAsync<List<Ticket>>("tickets"); } catch { _tickets = new(); }
 
-        // Load assignment status (latest assignee) to decide visibility of the Assign button
         try
         {
             var assigns = await Http.GetFromJsonAsync<List<AssignmentStatusDto>>("tickets/assignment-status") ?? new();

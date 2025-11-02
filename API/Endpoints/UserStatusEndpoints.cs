@@ -27,6 +27,17 @@ public static class UserStatusEndpoints
         
         app.MapPost("/userstatuses", async (UserStatus userStatus, AppDbContext db) =>  
         {
+            // Validate name and check duplicates (normalized)
+            var normalized = userStatus.Name?.Trim().ToLowerInvariant();
+            if (string.IsNullOrEmpty(normalized))
+            {
+                return Results.BadRequest("Nome do status é obrigatório.");
+            }
+            var exists = await db.UserStatus.AnyAsync(s => s.Name != null && s.Name.ToLower() == normalized);
+            if (exists)
+            {
+                return Results.Conflict(new { Message = "Status já cadastrado." });
+            }
             // Create a new entity and copy allowed fields only; ignore any Id provided by client
             var entity = new UserStatus { Name = userStatus.Name };
             db.UserStatus.Add(entity);

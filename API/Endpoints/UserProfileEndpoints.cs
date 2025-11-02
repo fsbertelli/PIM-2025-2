@@ -27,6 +27,17 @@ public static class UserProfileEndpoints
 
         app.MapPost("/profiles", async (UserProfile userProfile, AppDbContext db) =>
         {
+            // Validate name and check duplicates (normalized)
+            var normalized = userProfile.Name?.Trim().ToLowerInvariant();
+            if (string.IsNullOrEmpty(normalized))
+            {
+                return Results.BadRequest("Nome do perfil é obrigatório.");
+            }
+            var exists = await db.UserProfiles.AnyAsync(p => p.Name != null && p.Name.ToLower() == normalized);
+            if (exists)
+            {
+                return Results.Conflict(new { Message = $"Perfil {userProfile.Name} cadastrado." });
+            }
             // Create a new UserProfile and copy allowed fields; ignore any Id provided by client
             var entity = new UserProfile { Name = userProfile.Name };
             db.UserProfiles.Add(entity);

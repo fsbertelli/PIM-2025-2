@@ -1,5 +1,4 @@
-﻿// ...existing code...
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -66,4 +65,3 @@ public class TicketService : ITicketService
     }
 }
 
-// ...existing code...
