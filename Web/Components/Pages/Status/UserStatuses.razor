@@ -47,7 +47,7 @@
                         <td>@s.Id</td>
                         <td>@s.Name</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-danger" @onclick="() => OpenConfirmDelete(s.Id, s.Name)">Remover</button>
+                            <button class="btn btn-sm btn-outline-danger" disabled="@(!_isAdmin)" @onclick="() => OpenConfirmDelete(s.Id, s.Name)">Remover</button>
                         </td>
                     </tr>
                 }
@@ -84,12 +84,25 @@
     private string _search = string.Empty;
     private bool _isLoading = true;
     private string? _errorMessage;
-
-    // confirm modal state
+    //modal
     private bool _showConfirmModal;
     private int _confirmId;
     private string? _confirmName;
-
+    //perfil
+    private bool _isAdmin;
+    //dependencias
+    [Inject]
+    private IJSRuntime Js { get; set; } = default!;
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var flag = await Js.InvokeAsync<string>("localStorage.getItem", "isAdmin");
+            _isAdmin = flag == "1";
+            StateHasChanged();
+        }
+    }
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();

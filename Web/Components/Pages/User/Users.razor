@@ -55,8 +55,8 @@
                         <td>@u.UserProfile?.Name</td>
                         <td>@u.UserStatus?.Name</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-danger" @onclick="() => OpenConfirmDelete(u.Id, u.Name)">Remover</button>
-                            <button class="btn btn-sm btn-outline-warning" @onclick="() => OpenEditModal(u.Id)">Editar</button>
+                            <button class="btn btn-sm btn-outline-danger"  disabled="@(!_isAdmin)" @onclick="() => OpenConfirmDelete(u.Id, u.Name)">Remover</button>
+                            <button class="btn btn-sm btn-outline-warning"  disabled="@(!_isAdmin)" @onclick="() => OpenEditModal(u.Id)">Editar</button>
                         </td>
                     </tr>
                 }
@@ -184,13 +184,11 @@
     private string _search = string.Empty;
     private bool _isLoading = true;
     private string? _errorMessage;
-
-    // confirm modal state
+    //moda l de confirmação
     private bool _showConfirmModal;
     private int _confirmId;
     private string? _confirmName;
-
-    // edit modal state
+    //modal de edição
     private bool _showEditModal;
     private int _editingId;
     private UpdateUserDto _editModel = new();
@@ -199,6 +197,21 @@
     private List<DepartmentDto>? _depts;
     private List<UserProfileDto>? _profiles;
     private List<UserStatusDto>? _statuses;
+    //perfil
+    private bool _isAdmin;
+    //dependencias
+    [Inject]
+    private IJSRuntime Js { get; set; } = default!;
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var flag = await Js.InvokeAsync<string>("localStorage.getItem", "isAdmin");
+            _isAdmin = flag == "1";
+            StateHasChanged();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {

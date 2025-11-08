@@ -105,7 +105,7 @@ else
                     <button class="btn btn-outline-secondary" type="button" @onclick="GoBack">
                         <span class="bi bi-arrow-left me-1"></span> Voltar
                     </button>
-                    <button class="btn btn-outline-success" type="submit" disabled="@_isSubmitting">
+                    <button class="btn btn-outline-success" type="submit" disabled="@(_isSubmitting || !_isAdmin)">
                         @if (_isSubmitting)
                         {
                             <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
@@ -150,7 +150,22 @@ else
     private bool _showPassword = false;
     private bool _showSuccessModal;
     private string? _createdName;
-
+    //perfil
+    private bool _isAdmin;
+    //dependencias
+    [Inject]
+    private IJSRuntime Js { get; set; } = default!;
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var flag = await Js.InvokeAsync<string>("localStorage.getItem", "isAdmin");
+            _isAdmin = flag == "1";
+            StateHasChanged();
+        }
+    }
+    
     protected override async Task OnInitializedAsync()
     {
         await LoadLookupAsync();
@@ -272,7 +287,7 @@ else
     }
 
     private void TogglePassword() => _showPassword = !_showPassword;
-    private void GoBack() => NavigationManager.NavigateTo("/users");
+    private void GoBack() => NavigationManager.NavigateTo("/tickets");
 
     private void CloseModal()
     {

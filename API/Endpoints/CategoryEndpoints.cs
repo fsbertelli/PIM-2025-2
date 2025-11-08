@@ -62,13 +62,27 @@ public static class CategoryEndpoints
             var item = await db.Categories.FindAsync(id);
             if (item is null) return Results.NotFound();
             db.Categories.Remove(item);
-            await db.SaveChangesAsync();
-            return Results.Ok(item);
+            try
+            {
+                await db.SaveChangesAsync();
+                return Results.Ok(item);
+            } 
+            catch (DbUpdateException ex)
+            {
+                var error = ex.GetBaseException() as  Microsoft.Data.SqlClient.SqlException;
+                if (error != null && (error.Number == 547 || error.Number == 1451))
+                {
+                    return Results.Conflict(new { Message = "Não é possível excluir a categoria porque ela está associada a outros registros." });
+                }
+                return Results.Problem(detail: ex.GetBaseException()?.Message ?? ex.Message, statusCode: 500);
+            }
+
         })
         .WithName("DeleteCategory")
         .Produces(200)
         .Produces(404)
-        .Produces(401);
+        .Produces(409)
+        .Produces(500);
     }
 }
 

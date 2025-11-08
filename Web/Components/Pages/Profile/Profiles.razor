@@ -20,7 +20,7 @@
 
     @if (!string.IsNullOrEmpty(_errorMessage))
     {
-        <div class="error-label">@_errorMessage</div>
+        <div class="alert alert-danger" role="alert">@_errorMessage</div>
     }
 
     @if (_isLoading)
@@ -47,7 +47,7 @@
                         <td>@p.Id</td>
                         <td>@p.Name</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-danger" @onclick="() => OpenConfirmDelete(p.Id, p.Name)">Remover</button>
+                            <button class="btn btn-sm btn-outline-danger" disabled="@(!_isAdmin)" @onclick="() => OpenConfirmDelete(p.Id, p.Name)">Remover</button>
                         </td>
                     </tr>
                 }
@@ -85,16 +85,33 @@
     private bool _isLoading = true;
     private string? _errorMessage;
 
-    // confirm modal state
+    // modal
     private bool _showConfirmModal;
     private int _confirmId;
     private string? _confirmName;
+
+    //perfil
+    private bool _isAdmin;
+    
+    //dependencias
+    [Inject]
+    private IJSRuntime Js { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var flag = await Js.InvokeAsync<string>("localStorage.getItem", "isAdmin");
+            _isAdmin = flag == "1";
+            StateHasChanged();
+        }
+    }
+    
     private async Task LoadDataAsync()
     {
         _isLoading = true;

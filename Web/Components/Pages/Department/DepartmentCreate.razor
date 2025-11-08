@@ -43,7 +43,7 @@
                 <button class="btn btn-outline-secondary" type="button" @onclick="GoBack">
                     <span class="bi bi-arrow-left me-1"></span> Voltar
                 </button>
-                <button class="btn btn-outline-success" type="submit" disabled="@_isSubmitting">
+                <button class="btn btn-outline-success" type="submit" disabled="@(_isSubmitting || !_isAdmin)">
                     @if (_isSubmitting)
                     {
                         <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
@@ -82,7 +82,23 @@
     private bool _isSubmitting;
     private bool _showSuccessModal;
     private string? _createdName;
+    //perfil
+    private bool _isAdmin;
+    //dependencias
+    [Inject]
+    private IJSRuntime Js { get; set; } = default!;
 
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var flag = await Js.InvokeAsync<string>("localStorage.getItem", "isAdmin");
+            _isAdmin = flag == "1";
+            StateHasChanged();
+        }
+    }
+    
     private async Task HandleSubmit()
     {
         _errorMessage = null;
@@ -131,7 +147,7 @@
         }
     }
 
-    private void GoBack() => NavigationManager.NavigateTo("/");
+    private void GoBack() => NavigationManager.NavigateTo("/tickets");
 
     private void CloseModal()
     {

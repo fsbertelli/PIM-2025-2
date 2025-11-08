@@ -69,13 +69,28 @@ public static class DepartmentEndpoints
             if (dept is null) return Results.NotFound();
 
             db.Departments.Remove(dept);
-            await db.SaveChangesAsync();
-            return Results.Ok(dept);
+            try
+            {
+                await db.SaveChangesAsync();
+                return Results.Ok(dept);
+            }
+            catch (DbUpdateException ex)
+            {
+                var error = ex.GetBaseException() as  Microsoft.Data.SqlClient.SqlException;
+                if (error != null && (error.Number == 547 || error.Number == 1451))
+                {
+                    return Results.Conflict(new { Message = "Não é possível excluir o departamento porque ele está associado a outros registros." });
+                }
+                return Results.Problem(detail: ex.GetBaseException()?.Message ?? ex.Message, statusCode: 500);
+            }
+
         })
         .WithName("DeleteDepartment")
         .Produces(200)
         .Produces(404)
-        .Produces(401);
+        .Produces(401)
+        .Produces(409)
+        .Produces(500);
         
     }
 
