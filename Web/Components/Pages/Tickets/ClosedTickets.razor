@@ -1,0 +1,166 @@
+﻿@page "/closed-tickets"
+@using Web.Models
+@rendermode InteractiveServer
+
+<PageTitle>Histórico de chamados</PageTitle>
+
+<h1>    Histórico de chamados</h1>
+
+@if (_tickets == null)
+{
+    <div class="d-flex align-items-center text-muted">
+        <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+        Carregando dados...
+    </div>
+}
+else if (!_tickets.Any())
+{
+    <p><em>Nenhum chamado fechado encontrado.</em></p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th class="text-center" @onclick='() => SetSort("Id")'>
+                        ID <span class="ms-2 @GetIndicatorClass("Id")">@GetColumnIndicator("Id")</span>
+                    </th>
+                    <th class="text-center" @onclick='() => SetSort("Description")'>
+                        Descrição <span class="ms-2 @GetIndicatorClass("Description")">@GetColumnIndicator("Description")</span>
+                    </th>
+                    <th class="text-center" @onclick='() => SetSort("User")'>
+                        Usuário <span class="ms-2 @GetIndicatorClass("User")">@GetColumnIndicator("User")</span>
+                    </th>
+                    <th class="text-center" @onclick='() => SetSort("Department")'>
+                        Departamento <span class="ms-2 @GetIndicatorClass("Department")">@GetColumnIndicator("Department")</span>
+                    </th>
+                    <th class="text-center" @onclick='() => SetSort("Status")'>
+                        Status <span class="ms-2 @GetIndicatorClass("Status")">@GetColumnIndicator("Status")</span>
+                    </th>
+                    <th class="text-center" @onclick='() => SetSort("Date")'>
+                        Data <span class="ms-2 @GetIndicatorClass("Date")">@GetColumnIndicator("Date")</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ticket in _sortedTickets)
+                {
+                    <tr>
+                        <td class="text-center">@ticket.Id</td>
+                        <td class="text-center">@ticket.Description</td>
+                        <td class="text-center">@ticket.User?.Name</td>
+                        <td class="text-center">@ticket.Department?.Name</td>
+                        <td class="text-center"><span class="badge bg-secondary">@FormatStatus(ticket.StatusTicket?.Name)</span></td>
+                        <td class="text-center">@ticket.OpenDateTime?.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<Ticket>? _tickets;
+    private List<Ticket> _sortedTickets = new();
+    private string _sortColumn = "Id";
+    private bool _sortAscending = true;
+
+    [Inject] private HttpClient Http { get; set; } = default!;
+    [Inject] private IJSRuntime Js { get; set; } = default!;
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+
+    protected override Task OnInitializedAsync()
+    {
+        _tickets = null; 
+        return Task.CompletedTask;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var userId = await GetCurrentUserIdAsync();
+        if (userId == null)
+        {
+            try { await Js.InvokeVoidAsync("alert", "Sessão expirada. Faça login novamente."); } catch { }
+            Nav.NavigateTo("/login", true);
+            return;
+        }
+        try
+        {
+            _tickets = await Http.GetFromJsonAsync<List<Ticket>>($"tickets/assigned/{userId.Value}/closed") ?? new();
+        }
+        catch { _tickets = new(); }
+        ApplySorting();
+        StateHasChanged();
+    }
+
+    private string FormatStatus(string? name) => name ?? "";
+
+    private async Task<int?> GetCurrentUserIdAsync()
+    {
+        try
+        {
+            var idStr = await Js.InvokeAsync<string>("localStorage.getItem", "userId");
+            if (!string.IsNullOrWhiteSpace(idStr) && int.TryParse(idStr, out var id))
+            {
+                return id;
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private void SetSort(string column)
+    {
+        if (_sortColumn == column)
+        {
+            _sortAscending = !_sortAscending;
+        }
+        else
+        {
+            _sortColumn = column;
+            _sortAscending = true;
+        }
+        ApplySorting();
+        StateHasChanged();
+    }
+
+    private string GetIndicatorClass(string column) => _sortColumn == column ? "fw-bold" : string.Empty;
+
+    private string GetColumnIndicator(string column)
+    {
+        if (_sortColumn != column) return "";
+        return _sortAscending ? "▲" : "▼";
+    }
+
+    private void ApplySorting()
+    {
+        if (_tickets == null) return;
+        if (_sortColumn == "Id")
+        {
+            _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.Id).ToList() : _tickets.OrderByDescending(t => t.Id).ToList();
+        }
+        else if (_sortColumn == "Description")
+        {
+            _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.Description).ToList() : _tickets.OrderByDescending(t => t.Description).ToList();
+        }
+        else if (_sortColumn == "User")
+        {
+            _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.User?.Name).ToList() : _tickets.OrderByDescending(t => t.User?.Name).ToList();
+        }
+        else if (_sortColumn == "Department")
+        {
+            _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.Department?.Name).ToList() : _tickets.OrderByDescending(t => t.Department?.Name).ToList();
+        }
+        else if (_sortColumn == "Status")
+        {
+            _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.StatusTicket?.Name).ToList() : _tickets.OrderByDescending(t => t.StatusTicket?.Name).ToList();
+        }
+        else if (_sortColumn == "Date")
+        {
+            _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.OpenDateTime).ToList() : _tickets.OrderByDescending(t => t.OpenDateTime).ToList();
+        }
+    }
+}
+

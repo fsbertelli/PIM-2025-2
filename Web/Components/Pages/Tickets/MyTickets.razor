@@ -1,0 +1,737 @@
+﻿@page "/my-tickets"
+@using Web.Models
+@rendermode InteractiveServer
+@implements IDisposable
+
+<script src="js/MyTickets.js"></script>
+
+<PageTitle>Meus chamados</PageTitle>
+
+<h1>Meus chamados</h1>
+
+@if (_tickets == null)
+{
+    <div class="d-flex align-items-center text-muted">
+        <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+        Carregando dados...
+    </div>
+}
+else if (!_tickets.Any())
+{
+    <p><em>Nenhum chamado atribuído.</em></p>
+}
+else
+{
+    <div class="table-responsive text-center">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="table-light">
+            <tr>
+                <th class="text-center align-middle sortable" @onclick='() => SetSort("Id")'>
+                    ID <span class="ms-2 @GetIndicatorClass("Id")">@GetColumnIndicator("Id")</span>
+                </th>
+
+                <th class="text-center align-middle sortable" @onclick='() => SetSort("User")'>
+                    Usuário <span class="ms-2 @GetIndicatorClass("User")">@GetColumnIndicator("User")</span>
+                </th>
+
+                <th class="text-center align-middle sortable" @onclick='() => SetSort("Department")'>
+                    Departamento <span class="ms-2 @GetIndicatorClass("Department")">@GetColumnIndicator("Department")</span>
+                </th>
+
+                <th class="text-center align-middle sortable" @onclick='() => SetSort("Description")'>
+                    Descrição <span class="ms-2 @GetIndicatorClass("Description")">@GetColumnIndicator("Description")</span>
+                </th>
+
+                <th class="text-center align-middle sortable" @onclick='() => SetSort("Category")'>
+                    Categoria <span class="ms-2 @GetIndicatorClass("Category")">@GetColumnIndicator("Category")</span>
+                </th>
+
+                <th class="text-center align-middle sortable" @onclick='() => SetSort("Priority")'>
+                    Prioridade <span class="ms-2 @GetIndicatorClass("Priority")">@GetColumnIndicator("Priority")</span>
+                </th>
+
+                <th class="text-center align-middle sortable" @onclick='() => SetSort("Status")'>
+                    Status <span class="ms-2 @GetIndicatorClass("Status")">@GetColumnIndicator("Status")</span>
+                </th>
+
+                <th class="text-center align-middle sortable" @onclick='() => SetSort("Date")'>
+                    Data <span class="ms-2 @GetIndicatorClass("Date")">@GetColumnIndicator("Date")</span>
+                </th>
+
+                <th class="text-center align-middle">Ações</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            @foreach (var ticket in _sortedTickets)
+            {
+                <tr>
+                    <td class="text-center align-middle">@ticket.Id</td>
+                    <td class="text-center align-middle">@ticket.User?.Name</td>
+                    <td class="text-center align-middle">@ticket.Department?.Name</td>
+                    <td class="text-center align-middle">@ticket.Description</td>
+                    <td class="text-center align-middle">@ticket.Category?.Description</td>
+
+                    @{
+                        var priority = ticket.PriorityLevel.ToString();
+                        var priorityValue = priority.ToLowerInvariant();
+                        var badgeClass = "bg-primary";
+
+                        switch (priorityValue)
+                        {
+                            case "alta":
+                            case "3":
+                                badgeClass = "bg-danger";
+                                break;
+                            case "média":
+                            case "2":
+                            case "medium":
+                                badgeClass = "bg-warning";
+                                break;
+                            case "baixa":
+                            case "1":
+                                badgeClass = "bg-success";
+                                break;
+                        }
+                    }
+
+                    <td class="text-center align-middle">
+                        <span class="badge @badgeClass">@FormatStatus(priority)</span>
+                    </td>
+
+                    <td class="text-center align-middle">
+                        <span class="badge bg-success">@FormatStatus(ticket.StatusTicket?.Name)</span>
+                    </td>
+
+                    <td class="text-center align-middle">
+                        @ticket.OpenDateTime?.ToString("dd/MM/yyyy HH:mm:ss")
+                    </td>
+
+                    <td class="text-center align-middle">
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            <button class="btn btn-outline-info btn-sm"
+                                    title="Agente de IA"
+                                    @onclick="() => ShowAi(ticket)"
+                                    disabled="@(_aiLoading && _selectedTicket?.Id == ticket.Id)">
+                                @if (_aiLoading && _selectedTicket?.Id == ticket.Id)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                    <span>Processando...</span>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-chat-dots"></i> <span>&#129302;</span>
+                                }
+                            </button>
+                            
+                            
+                            <button class="btn btn-outline-warning btn-sm" @onclick="() => ShowDetails(ticket)" title="Detalhes">
+                                <i class="bi bi-eye"></i> Detalhes
+                            </button>
+
+                            <button class="btn btn-outline-primary btn-sm" @onclick="() => ShowChat(ticket)" title="Chat">
+                                <i class="bi bi-chat-dots"></i> Chat
+                            </button>
+
+                            @if (!string.Equals(ticket.StatusTicket?.Name, "Fechado", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <button class="btn btn-outline-danger btn-sm" @onclick="() => CloseTicket(ticket)" title="Fechar">
+                                    <i class="bi bi-check2-circle"></i> Fechar
+                                </button>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- Modal de detalhes -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content shadow-lg rounded-3">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-semibold" id="detailsModalLabel">
+                    Detalhes do Chamado #@(_selectedTicket?.Id)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-4">
+                @if (_selectedTicket != null)
+                {
+                    <div class="row g-3">
+
+                        <div class="col-12">
+                            <label class="fw-bold text-secondary">Descrição</label>
+                            <div class="p-3 bg-light rounded border">@_selectedTicket.Description</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-bold text-secondary">Usuário</label>
+                            <div class="p-2 bg-light rounded border">@_selectedTicket.User?.Name</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-bold text-secondary">Departamento</label>
+                            <div class="p-2 bg-light rounded border">@_selectedTicket.Department?.Name</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-bold text-secondary">Categoria</label>
+                            <div class="p-2 bg-light rounded border">@FormatStatus(_selectedTicket.Category?.Description)</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-bold text-secondary">Prioridade</label>
+                            <div class="p-2 bg-light rounded border">@FormatStatus(_selectedTicket.PriorityLevel.ToString())</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-bold text-secondary">Status</label>
+                            <div class="p-2 bg-light rounded border">@FormatStatus(_selectedTicket.StatusTicket?.Name)</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-bold text-secondary">Data de Abertura</label>
+                            <div class="p-2 bg-light rounded border">
+                                @_selectedTicket.OpenDateTime?.ToString("dd/MM/yyyy HH:mm:ss")
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-2">
+                            <label class="fw-bold text-secondary">Anexos (@_attachments.Count)</label>
+
+                            @if (_attachments.Any())
+                            {
+                                <div class="row g-3 mt-1">
+                                    @foreach (var attach in _attachments)
+                                    {
+                                        var a = attach?.Trim();
+                                        if (!string.IsNullOrEmpty(a))
+                                        {
+                                            <div class="col-md-4 text-center">
+                                                <div class="border rounded p-2 bg-white">
+                                                    <img src="@ToApiUrl(a)" 
+                                                         alt="Anexo do chamado" 
+                                                         class="img-fluid rounded" 
+                                                         style="max-height:180px" 
+                                                         onerror="this.onerror=null; this.src='@ProxyUrl(a)';" />
+
+                                                    <a href="@ToApiUrl(a)" target="_blank" class="btn btn-sm btn-outline-primary mt-2 w-100">
+                                                        Download
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-muted fst-italic mt-1">Sem anexos</div>
+                            }
+                        </div>
+
+                    </div>
+                }
+            </div>
+
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal do Chat -->
+<div class="modal fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow rounded-3 modal-chat">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-semibold" id="chatModalLabel">
+                    Chamado #@(_selectedTicket?.Id) - @(_selectedTicket?.User?.Name) 
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body chat-scroll-area">
+                @if (_transactions != null)
+                {
+                    <div class="chat-container">
+                        @foreach (var tx in _transactions)
+                        {
+                            var isRight = tx.UserSource?.Department?.ToString() == "Suporte";
+
+                            <div class="chat-bubble @(isRight ? "chat-right" : "chat-left")">
+
+                                <div class="chat-meta">
+                                    @tx.UserSource?.Name • @tx.CreatedAt?.ToString("dd/MM/yyyy HH:mm:ss")
+                                </div>
+
+                                <div>@tx.Body</div>
+
+                                @if (!string.IsNullOrEmpty(tx.AttachUrl))
+                                {
+                                    <div class="mt-2">
+                                        <a href="@ToApiUrl(tx.AttachUrl)" target="_blank" class="btn btn-sm btn-outline-primary w-100">
+                                            Ver Anexo
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="chat-input-area">
+                <div class="d-flex align-items-center gap-2">
+                    <textarea class="form-control chat-textarea"
+                              @bind="_newMessage"
+                              rows="2"
+                              placeholder="Digite uma nova mensagem..."></textarea>
+
+                    <button type="button"
+                            class="btn btn-outline-primary"
+                            @onclick="async () => await SendMessage()">
+                        Enviar
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- Modal do Agente de IA -->
+<div class="modal fade" id="aiModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg rounded-3 border-0">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-semibold">
+                    Agente de IA — Chamado #@(_selectedTicket?.Id)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-4">
+
+                @if (_aiLoading)
+                {
+                    <div class="d-flex flex-column align-items-center justify-content-center py-5">
+                        <div class="spinner-border text-primary mb-3" 
+                             style="width: 3rem; height: 3rem;" role="status"></div>
+
+                        <div class="text-muted fs-6">
+                            A IA está analisando o chamado...
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="bg-light border rounded-3 p-4"
+                         style="min-height:180px; max-height:420px; overflow-y:auto; line-height:1.6;">
+
+                        <pre class="m-0" 
+                             style="
+                                 white-space:pre-wrap;
+                                 font-size:1rem;
+                                 font-family: 'Segoe UI', Roboto, sans-serif;
+                                 line-height:1.6;
+                                 word-break: break-word;
+                                 ">
+@_aiResponse
+                        </pre>
+                    </div>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private List<Ticket>? _tickets;
+    private List<Ticket> _sortedTickets = new();
+    private Ticket? _selectedTicket;
+    private List<TicketTransactionDto> _transactions = new();
+    private List<string> _attachments = new();
+    private string _newMessage = "";
+    private string _sortColumn = "Id";
+    private bool _sortAscending = true;
+    private Timer? _pollTimer;
+    private bool _isChatOpen = false;
+    private string _aiResponse = "";
+    private bool _aiLoading = false;
+    private Dictionary<int, string> _aiCache = new();
+
+    private class GptResponseDto
+    {
+        public string? Result { get; set; }
+    }
+
+    [Inject] private HttpClient Http { get; set; } = default!;
+    [Inject] private IJSRuntime Js { get; set; } = default!;
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+
+    protected override Task OnInitializedAsync()
+    {
+        _tickets = null;
+        return Task.CompletedTask;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var userId = await GetCurrentUserIdAsync();
+        if (userId == null)
+        {
+            try
+            {
+                await Js.InvokeVoidAsync("alert", "Sessão expirada. Faça login novamente.");
+            }
+            catch
+            {
+            }
+
+            Nav.NavigateTo("/login", true);
+            return;
+        }
+
+        try
+        {
+            _tickets = await Http.GetFromJsonAsync<List<Ticket>>($"tickets/assigned/{userId.Value}") ?? new();
+        }
+        catch
+        {
+            _tickets = new();
+        }
+
+        ApplySorting();
+        StateHasChanged();
+    }
+
+
+    private string FormatStatus(string? name) =>
+        string.Equals(name, "Em Progresso", StringComparison.OrdinalIgnoreCase)
+            ? "Atendendo"
+            : (name ?? "");
+
+    private async Task ShowDetails(Ticket ticket)
+    {
+        _selectedTicket = ticket;
+        await LoadAttachments(ticket.Id);
+        await LoadTransactions(ticket.Id);
+        await Js.InvokeVoidAsync("eval", "new bootstrap.Modal(document.getElementById('detailsModal')).show()");
+    }
+
+    private async Task ShowChat(Ticket ticket)
+    {
+        _selectedTicket = ticket;
+        await LoadTransactions(ticket.Id);
+
+        await Js.InvokeVoidAsync("eval", "new bootstrap.Modal(document.getElementById('chatModal')).show()");
+        await Js.InvokeVoidAsync("scrollChatToBottom");
+
+        _isChatOpen = true;
+
+        _pollTimer?.Dispose();
+        _pollTimer = new Timer(async _ =>
+        {
+            if (_isChatOpen)
+            {
+                await LoadTransactions(ticket.Id);
+                await InvokeAsync(StateHasChanged);
+                await Js.InvokeVoidAsync("scrollChatToBottom");
+            }
+        }, null, 0, 3000);
+
+        await Js.InvokeVoidAsync("chatInterop.hookClose", DotNetObjectReference.Create(this));
+    }
+
+    private async Task CloseTicket(Ticket ticket)
+    {
+        try
+        {
+            var statuses = await Http.GetFromJsonAsync<List<StatusTicketDto>>("statustickets") ?? new();
+            var closed = statuses.FirstOrDefault(s => string.Equals(s.Name, "Fechado", StringComparison.OrdinalIgnoreCase));
+            if (closed == null)
+            {
+                await Js.InvokeVoidAsync("alert", "Status 'Fechado' não encontrado.");
+                return;
+            }
+
+            ticket.StatusId = closed.Id;
+
+            var resp = await Http.PutAsJsonAsync($"tickets/{ticket.Id}", ticket);
+            if (!resp.IsSuccessStatusCode)
+            {
+                await Js.InvokeVoidAsync("alert", $"Falha ao fechar o chamado: {(int)resp.StatusCode}");
+                return;
+            }
+
+            var userId = await GetCurrentUserIdAsync();
+            _tickets = await Http.GetFromJsonAsync<List<Ticket>>($"tickets/assigned/{userId}") ?? new();
+            ApplySorting();
+        }
+        catch (Exception ex)
+        {
+            await Js.InvokeVoidAsync("alert", $"Erro ao fechar chamado: {ex.Message}");
+        }
+    }
+
+    private async Task SendMessage()
+    {
+        if (_selectedTicket == null || string.IsNullOrWhiteSpace(_newMessage))
+            return;
+
+        var currentUserId = await GetCurrentUserIdAsync();
+        if (currentUserId == null)
+        {
+            await Js.InvokeVoidAsync("alert", "Não foi possível identificar o usuário logado.");
+            return;
+        }
+
+        var tx = new
+        {
+            UserSourceId = currentUserId.Value,
+            UserTargetId = (int?)null,
+            Body = _newMessage,
+            TicketId = _selectedTicket.Id,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await Http.PostAsJsonAsync("tickettransactions", tx);
+
+        _newMessage = "";
+
+        await LoadTransactions(_selectedTicket.Id);
+        await InvokeAsync(StateHasChanged);
+        await Js.InvokeVoidAsync("scrollChatToBottom");
+    }
+
+    private async Task LoadAttachments(int ticketId)
+    {
+        try
+        {
+            var urls = await Http.GetFromJsonAsync<List<string>>($"tickets/{ticketId}/attachments");
+            _attachments = urls?.Select(u => u?.Trim()).Where(u => !string.IsNullOrEmpty(u)).Cast<string>().ToList() ?? new();
+        }
+        catch
+        {
+            _attachments = new();
+        }
+    }
+
+    private async Task LoadTransactions(int ticketId)
+    {
+        try
+        {
+            var resp = await Http.GetAsync($"tickettransactions/ticket/{ticketId}");
+            if (resp.IsSuccessStatusCode)
+            {
+                _transactions = await resp.Content.ReadFromJsonAsync<List<TicketTransactionDto>>() ?? new();
+            }
+            else
+            {
+                _transactions = new();
+            }
+        }
+        catch
+        {
+            _transactions = new();
+        }
+    }
+
+    private async Task<int?> GetCurrentUserIdAsync()
+    {
+        try
+        {
+            var idStr = await Js.InvokeAsync<string>("localStorage.getItem", "userId");
+            if (!string.IsNullOrWhiteSpace(idStr) && int.TryParse(idStr, out var id))
+            {
+                return id;
+            }
+        }
+        catch
+        {
+        }
+
+        return null;
+    }
+
+    private string ToApiUrl(string path)
+    {
+        var baseUrl = Http.BaseAddress?.ToString().TrimEnd('/') ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+        if (Uri.IsWellFormedUriString(path, UriKind.Absolute)) return path;
+        if (path.StartsWith('/')) return baseUrl + path;
+        return $"{baseUrl}/{path}";
+    }
+
+    private string ProxyUrl(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+        var trimmed = path.TrimStart('/');
+        if (trimmed.StartsWith("uploads", StringComparison.OrdinalIgnoreCase))
+        {
+            var rest = trimmed.Substring("uploads".Length).TrimStart('/');
+            return "/files/" + rest;
+        }
+
+        return "/files/" + trimmed;
+    }
+
+    private void SetSort(string column)
+    {
+        if (_sortColumn == column)
+        {
+            _sortAscending = !_sortAscending;
+        }
+        else
+        {
+            _sortColumn = column;
+            _sortAscending = true;
+        }
+
+        ApplySorting();
+        StateHasChanged();
+    }
+
+    private void ApplySorting()
+    {
+        if (_tickets == null) return;
+
+        if (_sortColumn == "Id")
+            _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.Id).ToList() : _tickets.OrderByDescending(t => t.Id).ToList();
+        else if (_sortColumn == "Description")
+            _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.Description).ToList() : _tickets.OrderByDescending(t => t.Description).ToList();
+        else if (_sortColumn == "User")
+            _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.User?.Name).ToList() : _tickets.OrderByDescending(t => t.User?.Name).ToList();
+        else if (_sortColumn == "Department")
+            _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.Department?.Name).ToList() : _tickets.OrderByDescending(t => t.Department?.Name).ToList();
+        else if (_sortColumn == "Status")
+            _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.StatusTicket?.Name).ToList() : _tickets.OrderByDescending(t => t.StatusTicket?.Name).ToList();
+        else if (_sortColumn == "Date")
+            _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.OpenDateTime).ToList() : _tickets.OrderByDescending(t => t.OpenDateTime).ToList();
+    }
+
+    private string GetColumnIndicator(string column)
+    {
+        if (_sortColumn != column) return "";
+        return _sortAscending ? "▲" : "▼";
+    }
+
+    private string GetIndicatorClass(string column)
+    {
+        return _sortColumn == column ? "fw-bold" : string.Empty;
+    }
+
+    [JSInvokable]
+    public void StopChatPolling()
+    {
+        _isChatOpen = false;
+        _pollTimer?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        _pollTimer?.Dispose();
+    }
+
+    private async Task ShowAi(Ticket ticket)
+    {
+        if (_aiLoading) // evita chamadas concorrentes
+            return;
+
+        _selectedTicket = ticket;
+
+        var storageKey = $"aiSolution_{ticket.Id}";
+
+        // 1) verifica cache em memória
+        if (_aiCache.TryGetValue(ticket.Id, out var cached))
+        {
+            _aiResponse = cached;
+            _aiLoading = false;
+            StateHasChanged();
+            await Js.InvokeVoidAsync("eval", "new bootstrap.Modal(document.getElementById('aiModal')).show()");
+            return;
+        }
+
+        // 2) verifica localStorage
+        try
+        {
+            var stored = await Js.InvokeAsync<string>("localStorage.getItem", storageKey);
+            if (!string.IsNullOrWhiteSpace(stored))
+            {
+                _aiCache[ticket.Id] = stored;
+                _aiResponse = stored;
+                _aiLoading = false;
+                StateHasChanged();
+                await Js.InvokeVoidAsync("eval", "new bootstrap.Modal(document.getElementById('aiModal')).show()");
+                return;
+            }
+        }
+        catch
+        {
+            // falha ao acessar localStorage -> prossegue para chamada à API
+        }
+
+        // 3) chamada à API (somente se não houver cache)
+        _aiResponse = "";
+        _aiLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var payload = new { Prompt = ticket.Description };
+            var resp = await Http.PostAsJsonAsync($"tickets/{ticket.Id}/gpt-solution", payload);
+
+            if (resp.IsSuccessStatusCode)
+            {
+                var dto = await resp.Content.ReadFromJsonAsync<GptResponseDto>();
+                _aiResponse = dto?.Result ?? "(nenhuma resposta)";
+
+                // armazena no cache em memória
+                _aiCache[ticket.Id] = _aiResponse;
+
+                // persiste no localStorage para reutilização futura
+                try
+                {
+                    await Js.InvokeVoidAsync("localStorage.setItem", storageKey, _aiResponse ?? "");
+                }
+                catch
+                {
+                    // ignore erros de storage
+                }
+            }
+            else
+            {
+                _aiResponse = $"Erro: {(int)resp.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _aiResponse = $"Erro: {ex.Message}";
+        }
+        finally
+        {
+            _aiLoading = false;
+            StateHasChanged();
+            await Js.InvokeVoidAsync("eval", "new bootstrap.Modal(document.getElementById('aiModal')).show()");
+        }
+    }
+
+}
+<style>
+    .sortable { cursor: pointer; user-select: none; }
+</style>
+<script src="/js/MyTickets.razor.js"></script>

@@ -1,0 +1,157 @@
+﻿@page "/login"
+@page "/"
+@layout LoginLayout
+@using Web.Models
+@using System.Net
+@using Web.Components.Layout
+@rendermode InteractiveServer
+
+<EditForm Model="_loginModel" OnValidSubmit="HandleValidSubmit" FormName="LoginForm">
+    <DataAnnotationsValidator />
+
+    <div class="login-page">
+        <div class="login-card">
+            <h3>Sigma - Web</h3>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" class="form-control"
+                       placeholder="Email"
+                       @bind="_loginModel.Email" />
+                <ValidationMessage For="() => _loginModel.Email" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input id="password" name="password" type="password" class="form-control"
+                       placeholder="Senha"
+                       @bind="_loginModel.Password" />
+                <ValidationMessage For="() => _loginModel.Password" />
+            </div>
+
+            <div class="form-row remember-row">
+                <input id="remember" name="remember" type="checkbox"
+                       @bind="_loginModel.Remember" />
+                <label for="remember">Lembrar credenciais</label>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="error-label">@_errorMessage</div>
+            }
+
+            <div class="form-row">
+                <button class="btn-login" type="submit" disabled="@_isSubmitting">
+                    @if (_isSubmitting)
+                    {
+                        <span class="spinner"></span>
+                        <span class="sr-only">Entrando...</span>
+                    }
+                    else
+                    {
+                        <span>Entrar</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private LoginModel _loginModel = new();
+    private bool _isSubmitting;
+    private string? _errorMessage;
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject]
+    private HttpClient Http { get; set; } = default!;
+    [Inject]
+    private IJSRuntime Js { get; set; } = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var savedEmail = await Js.InvokeAsync<string>("localStorage.getItem", "savedEmail");
+            var savedPassword = await Js.InvokeAsync<string>("localStorage.getItem", "savedPassword");
+            if (!string.IsNullOrEmpty(savedEmail))
+            {
+                _loginModel.Email = savedEmail;
+                _loginModel.Remember = true;
+                StateHasChanged();
+            }
+            if (!string.IsNullOrEmpty(savedPassword))
+            {
+                _loginModel.Password = savedPassword;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        _errorMessage = null;
+        _isSubmitting = true;
+        bool navigated = false;
+
+        try
+        {
+            var payload = new { email = _loginModel.Email, password = _loginModel.Password };
+            var response = await Http.PostAsJsonAsync("/login", payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var user = await response.Content.ReadFromJsonAsync<UserDto>();
+
+                if (user == null || !string.Equals(user.Department?.Name?.Trim(), "Suporte", StringComparison.OrdinalIgnoreCase))
+                {
+                    _errorMessage = "Email ou senha incorretos.";
+                    return;
+                }
+
+                var isAdmin = string.Equals(user.UserProfile?.Name?.Trim(), "Administrador", StringComparison.OrdinalIgnoreCase);
+
+                await Js.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "1");
+                await Js.InvokeVoidAsync("localStorage.setItem", "savedName", user.Name);
+                await Js.InvokeVoidAsync("localStorage.setItem", "userId", user.Id.ToString());
+                await Js.InvokeVoidAsync("localStorage.setItem", "isAdmin", isAdmin ? "1" : "0");
+
+                if (_loginModel.Remember)
+                {
+                    await Js.InvokeVoidAsync("localStorage.setItem", "savedEmail", _loginModel.Email);
+                    await Js.InvokeVoidAsync("localStorage.setItem", "savedPassword", _loginModel.Password);
+                }
+                else
+                {
+                    await Js.InvokeVoidAsync("localStorage.removeItem", "savedEmail");
+                    await Js.InvokeVoidAsync("localStorage.removeItem", "savedPassword");
+                }
+                navigated = true;
+                await InvokeAsync(() => NavigationManager.NavigateTo("/tickets"));
+                return;
+            }
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                _errorMessage = "Email ou senha incorretos.";
+                return;
+            }
+            else
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                _errorMessage = $"Erro na autenticação: {(int)response.StatusCode} - {text}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            if (!navigated)
+            {
+                _isSubmitting = false;
+            }
+        }
+    }
+}

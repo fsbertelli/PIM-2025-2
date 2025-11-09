@@ -1,0 +1,81 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <title>Sniffer - Logs em tempo real</title>
+    <style>
+        body { font-family: monospace; margin: 0; padding: 0; background:#111; color:#eee; }
+        #status { padding:8px; background:#222; border-bottom:1px solid #333; }
+        #log { height: calc(100vh - 40px); overflow:auto; padding: 12px; box-sizing: border-box; white-space: pre-wrap; }
+        .debug { color: #9ad; }
+        .info { color: #9f9; }
+        .warn { color: #ffb86b; }
+        .error { color: #ff6b6b; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.10/signalr.min.js"></script>
+</head>
+<body>
+<div id="status">Conectando...</div>
+<div id="log"></div>
+
+<script>
+    const statusEl = document.getElementById('status');
+    const logEl = document.getElementById('log');
+
+    function addLine(text) {
+        const line = document.createElement('div');
+        const levelMatch = text.match(/\[(Trace|Debug|Information|Info|Warning|Error|Critical|None)\]/i);
+        const lvl = levelMatch ? levelMatch[1].toLowerCase() : 'info';
+        line.className = lvl === 'information' || lvl === 'info' ? 'info' : (lvl === 'warning' ? 'warn' : (lvl === 'error' || lvl === 'critical' ? 'error' : 'debug'));
+        line.textContent = text;
+        logEl.appendChild(line);
+        logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl('/loghub')
+        .withAutomaticReconnect()
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+
+    connection.on('ReceiveLog', msg => addLine(msg));
+
+    connection.onreconnecting(error => {
+        console.warn('SignalR: reconnecting', error);
+        statusEl.textContent = 'Reconectando...';
+        statusEl.style.color = '#ffb86b';
+    });
+
+    connection.onreconnected(connectionId => {
+        console.info('SignalR: reconnected', connectionId);
+        statusEl.textContent = 'Conectado';
+        statusEl.style.color = '#9f9';
+    });
+
+    connection.onclose(error => {
+        console.error('SignalR: closed', error);
+        statusEl.textContent = 'Desconectado';
+        statusEl.style.color = '#f66';
+    });
+
+    connection.start()
+        .then(() => {
+            console.info('SignalR: conectado');
+            statusEl.textContent = 'Conectado';
+            statusEl.style.color = '#9f9';
+        })
+        .catch(err => {
+            console.error('Falha ao conectar ao LogHub:', err);
+            addLine('Falha ao conectar ao LogHub: ' + err);
+            statusEl.textContent = 'Erro de conexão';
+            statusEl.style.color = '#f66';
+        });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'T' || e.key === 't') {
+            fetch('/logtest').catch(err => addLine('Erro fetch /logtest: ' + err));
+        }
+    });
+</script>
+</body>
+</html>

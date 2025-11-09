@@ -51,5 +51,6 @@ public static class UserDtoEndpoints
         .Produces(200)
         .Produces(404)
         .Produces(401);
+
     }
 }

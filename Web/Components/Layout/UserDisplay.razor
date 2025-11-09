@@ -1,0 +1,19 @@
+﻿@rendermode InteractiveServer
+
+<span class="d-none d-lg-inline fw-medium">@(_userName ?? "Usuário")</span>
+
+@code {
+    private string? _userName;
+
+    [Inject] private IJSRuntime Js { get; set; } = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var name = await Js.InvokeAsync<string>("localStorage.getItem", "savedEmail");
+        if (_userName != name)
+        {
+            _userName = name;
+            StateHasChanged();
+        }
+    }
+}
