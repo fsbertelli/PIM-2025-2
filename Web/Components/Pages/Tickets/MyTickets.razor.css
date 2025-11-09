@@ -1,0 +1,123 @@
+﻿/* Tickets.razor.css */
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap; /* evita quebra do conteúdo do th */
+    vertical-align: middle;
+}
+
+/* Garante que o texto e o indicador (span.ms-2) fiquem alinhados em linha */
+.table thead th.sortable > span,
+.table thead th.sortable > * {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    line-height: 1;
+}
+
+/* Força o span indicador a não quebrar */
+.table thead th.sortable .ms-2 {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+}
+
+/* Ações: evita quebra dentro da célula e mantém os botões em linha */
+td.text-nowrap {
+    white-space: nowrap;
+}
+
+td.text-nowrap .d-flex {
+    gap: 0.35rem; /* espaçamento entre botões */
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+@media (max-width: 480px) {
+    td.text-nowrap .btn {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.75rem;
+    }
+}
+
+
+.modal-chat {
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Área rolável de mensagens */
+.chat-scroll-area {
+    overflow-y: auto;
+    flex: 1;
+    padding: 20px;
+    overflow-anchor: auto;
+}
+
+.chat-container > *:last-child {
+    overflow-anchor: none;
+}
+
+
+/* Container das mensagens */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Bolhas */
+.chat-bubble {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 15px;
+    font-size: 0.95rem;
+    border: 1px solid #ddd;
+    background: #f8f9fa;
+}
+
+/* Alinhamento */
+.chat-left {
+    align-self: flex-start;
+}
+
+.chat-right {
+    align-self: flex-end;
+    background: #e7f1ff;
+    border-color: #bfd8ff;
+}
+
+/* Metadados */
+.chat-meta {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+/* Área fixa do campo de texto */
+.chat-input-area {
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    background: #f8f9fa;
+}
+
+/* Textarea do chat */
+.chat-textarea {
+    resize: none;
+}
+
+@media (max-width: 768px) {
+    table td, table th {
+        padding: 6px 4px !important;
+        font-size: 0.85rem;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+}
+
+
+ .sortable { cursor: pointer; user-select: none; }

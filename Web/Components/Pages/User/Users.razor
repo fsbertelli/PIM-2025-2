@@ -20,7 +20,7 @@
     </div>
     @if (!string.IsNullOrEmpty(_errorMessage))
     {
-        <div class="error-label">@_errorMessage</div>
+        <div class="alert alert-danger" role="alert">@_errorMessage</div>
     }
 
     @if (_isLoading)

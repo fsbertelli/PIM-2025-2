@@ -64,10 +64,18 @@ public class TicketTransactionService : ITicketTransactionService
                 throw new InvalidOperationException("Failed to save attachment.");
         }
 
-        //  Faz o assign do ticketId no targetId e muda o status de aberto para atendendo
+        // When assigning a ticket (UserTargetId present), set status to 'Em andamento' (preferred)
         if (request.UserTargetId.HasValue)
         {
-            var inProgress = await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Atendendo");
+            // Ensure a canonical 'Em andamento' status exists, create if missing
+            var inProgress = await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Em andamento");
+            if (inProgress == null)
+            {
+                inProgress = new Models.StatusTicket { Name = "Em andamento" };
+                db.StatusTickets.Add(inProgress);
+                await db.SaveChangesAsync();
+                inProgress = await db.StatusTickets.FirstAsync(s => s.Name == "Em andamento");
+            }
             if (inProgress != null && ticket.StatusId != inProgress.Id)
             {
                 ticket.StatusId = inProgress.Id;
@@ -128,8 +136,15 @@ public class TicketTransactionService : ITicketTransactionService
 
         if (userTargetId.HasValue)
         {
-            var inProgress = await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Em Progresso")
-                              ?? await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Atendendo");
+            // Ensure canonical 'Em andamento' status exists, create if missing
+            var inProgress = await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Em andamento");
+            if (inProgress == null)
+            {
+                inProgress = new Models.StatusTicket { Name = "Em andamento" };
+                db.StatusTickets.Add(inProgress);
+                await db.SaveChangesAsync();
+                inProgress = await db.StatusTickets.FirstAsync(s => s.Name == "Em andamento");
+            }
             if (inProgress != null && ticket.StatusId != inProgress.Id)
             {
                 ticket.StatusId = inProgress.Id;
@@ -156,4 +171,3 @@ public class TicketTransactionService : ITicketTransactionService
         return entity;
     }
 }
-

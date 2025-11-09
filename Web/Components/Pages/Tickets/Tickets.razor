@@ -27,14 +27,20 @@ else
                     <th class="text-center sortable" @onclick='() => SetSort("Id")'>
                         ID <span class="ms-2 @GetIndicatorClass("Id")">@GetColumnIndicator("Id")</span>
                     </th>
-                    <th class="text-center sortable" @onclick='() => SetSort("Description")'>
-                        Descrição <span class="ms-2 @GetIndicatorClass("Description")">@GetColumnIndicator("Description")</span>
-                    </th>
                     <th class="text-center sortable" @onclick='() => SetSort("User")'>
                         Usuário <span class="ms-2 @GetIndicatorClass("User")">@GetColumnIndicator("User")</span>
                     </th>
                     <th class="text-center sortable" @onclick='() => SetSort("Department")'>
                         Departamento <span class="ms-2 @GetIndicatorClass("Department")">@GetColumnIndicator("Department")</span>
+                    </th>
+                    <th class="text-center sortable" @onclick='() => SetSort("Description")'>
+                        Descrição <span class="ms-2 @GetIndicatorClass("Description")">@GetColumnIndicator("Description")</span>
+                    </th>
+                    <th class="text-center sortable" @onclick='() => SetSort("Category")'>
+                        Categoria <span class="ms-2 @GetIndicatorClass("Category")">@GetColumnIndicator("Category")</span>
+                    </th>
+                    <th class="text-center sortable" @onclick='() => SetSort("Priority")'>
+                        Prioridade <span class="ms-2 @GetIndicatorClass("Priority")">@GetColumnIndicator("Priority")</span>
                     </th>
                     <th class="text-center sortable" @onclick='() => SetSort("Status")'>
                         Status <span class="ms-2 @GetIndicatorClass("Status")">@GetColumnIndicator("Status")</span>
@@ -50,18 +56,50 @@ else
                 {
                     <tr>
                         <td class="text-center">@ticket.Id</td>
-                        <td class="text-center">@ticket.Description</td>
                         <td class="text-center">@ticket.User?.Name</td>
                         <td class="text-center">@ticket.Department?.Name</td>
-                        <td class="text-center"><span class="badge bg-secondary">@FormatStatus(ticket.StatusTicket?.Name)</span></td>
-                        <td class="text-center">@ticket.OpenDateTime?.ToString("dd/MM/yyyy HH:mm:ss")</td>
-                        <td class="text-center">
-                            <button class="btn btn-outline-warning btn-sm me-1" @onclick="() => ShowDetails(ticket)" title="Detalhes"><i class="bi bi-eye"></i> Detalhes</button>
-                            @if (!IsAssigned(ticket.Id))
+                        <td class="text-center">@ticket.Description</td>
+                        <td class="text-center">@ticket.Category?.Description</td>
+                        @{
+                            var priority = ticket.PriorityLevel.ToString();
+                            var priorityValue = priority.ToLowerInvariant();
+                            var badgeClass = "bg-primary";
+
+                            switch (priorityValue)
                             {
-                                <button class="btn btn-outline-success btn-sm me-1" @onclick="() => AssignTicket(ticket)" title="Atribuir"><i class="bi bi-person-plus"></i> Atribuir</button>
+                                case "alta":
+                                case "3":
+                                    badgeClass = "bg-danger";
+                                    break;
+                                case "média":
+                                case "2":
+                                case "medium":
+                                    badgeClass = "bg-warning";
+                                    break;
+                                case "baixa":
+                                case "1":
+                                    badgeClass = "bg-success";
+                                    break;
                             }
-                            <button class="btn btn-outline-primary btn-sm" @onclick="() => ShowChat(ticket)" title="Chat"><i class="bi bi-chat-dots"></i> Chat</button>
+                        }
+
+                        <td class="text-center">
+                            <span class="badge @badgeClass">@FormatStatus(priority)</span>
+                        </td>
+                        <td class="text-center"><span class="badge bg-primary">@FormatStatus(ticket.StatusTicket?.Name)</span></td>
+                        <td class="text-center">@ticket.OpenDateTime?.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                        <td class="text-center text-nowrap">
+                            <div class="d-flex justify-content-center align-items-center">
+                                <button class="btn btn-outline-warning btn-sm me-1" @onclick="() => ShowDetails(ticket)" title="Detalhes">
+                                    <i class="bi bi-eye"></i> Detalhes
+                                </button>
+                                @if (!IsAssigned(ticket.Id))
+                                {
+                                    <button class="btn btn-outline-success btn-sm" @onclick="() => AssignTicket(ticket)" title="Atribuir">
+                                        <i class="bi bi-person-plus"></i> Atribuir
+                                    </button>
+                                }
+                            </div>
                         </td>
                     </tr>
                 }
@@ -72,149 +110,105 @@ else
 
 <!-- Modal de Detalhes -->
 <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="detailsModalLabel">Detalhes do Chamado #@(_selectedTicket?.Id)</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content shadow-lg rounded-3">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-semibold" id="detailsModalLabel">
+                    Detalhes do Chamado #@(_selectedTicket?.Id)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+
+            <div class="modal-body p-4">
                 @if (_selectedTicket != null)
                 {
-                    <div class="mb-3">
-                        <label class="form-label">Descrição</label>
-                        <p>@_selectedTicket.Description</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Usuário</label>
-                        <p>@_selectedTicket.User?.Name</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Departamento</label>
-                        <p>@_selectedTicket.Department?.Name</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Categoria</label>
-                        <select class="form-select" @bind="_selectedTicket.CategoryId">
-                            @foreach (var cat in _categories)
-                            {
-                                <option value="@cat.Id">@cat.Name</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Prioridade</label>
-                        <select class="form-select" @bind="_selectedTicket.PriorityLevel">
-                            <option value="1">Baixa</option>
-                            <option value="2">Média</option>
-                            <option value="3">Alta</option>
-                            <option value="4">Urgente</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <p>@FormatStatus(_selectedTicket.StatusTicket?.Name)</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Data de Abertura</label>
-                        <p>@_selectedTicket.OpenDateTime?.ToString("dd/MM/yyyy HH:mm")</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Anexos (@_attachments.Count)</label>
-                        @if (_attachments.Any())
-                        {
-                            @foreach (var attach in _attachments)
-                            {
-                                var a = attach?.Trim();
-                                if (!string.IsNullOrEmpty(a))
-                                {
-                                    <div class="mb-2">
-                                        <div class="mt-2">
-                                            <img src="@ToApiUrl(a)" alt="Anexo do chamado" class="img-thumbnail" style="max-height:180px" onerror="this.onerror=null; this.src='@ProxyUrl(a)';" />
-                                        </div>
-                                        <a href="@ToApiUrl(a)" target="_blank" class="btn btn-sm btn-outline-primary">Download Anexo</a>
-                                    </div>
-                                }
-                            }
-                        }
-                        else
-                        {
-                            <div class="text-muted">Sem anexos</div>
-                        }
-                    </div>
-                }
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                <button type="button" class="btn btn-primary" @onclick="UpdateTicket">Salvar Alterações</button>
-            </div>
-        </div>
-    </div>
-</div>
+                    <div class="row g-3">
 
-<!-- Modal de Atribuição (selecionar outro técnico manualmente) -->
-<div class="modal fade" id="assignModal" tabindex="-1" aria-labelledby="assignModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="assignModalLabel">Atribuir Chamado</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Selecionar Técnico</label>
-                    <select class="form-select" @bind="_selectedUserId">
-                        <option value="">Selecione...</option>
-                        @foreach (var user in _users)
-                        {
-                            <option value="@user.Id">@user.Name</option>
-                        }
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" @onclick="AssignToUser">Atribuir</button>
-            </div>
-        </div>
-    </div>
-</div>
+                        <div class="col-12">
+                            <label class="fw-bold text-secondary">Descrição</label>
+                            <div class="p-3 bg-light rounded border">@_selectedTicket.Description</div>
+                        </div>
 
-<!-- Modal de Chat -->
-<div class="modal fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="chatModalLabel">Chat do Chamado #@(_selectedTicket?.Id)</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                @if (_transactions != null)
-                {
-                    @foreach (var tx in _transactions)
-                    {
-                        <div class="mb-3">
-                            <strong>@tx.UserSource?.Name</strong> (@tx.CreatedAt?.ToString("dd/MM/yyyy HH:mm:ss"))<br />
-                            @tx.Body
-                            @if (!string.IsNullOrEmpty(tx.AttachUrl))
+                        <div class="col-md-6">
+                            <label class="fw-bold text-secondary">Usuário</label>
+                            <div class="p-2 bg-light rounded border">@_selectedTicket.User?.Name</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-bold text-secondary">Departamento</label>
+                            <div class="p-2 bg-light rounded border">@_selectedTicket.Department?.Name</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-bold text-secondary">Categoria</label>
+                            <div class="p-2 bg-light rounded border">@FormatStatus(_selectedTicket.Category?.Description)</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-bold text-secondary">Prioridade</label>
+                            <div class="p-2 bg-light rounded border">@FormatStatus(_selectedTicket.PriorityLevel.ToString())</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-bold text-secondary">Status</label>
+                            <div class="p-2 bg-light rounded border">@FormatStatus(_selectedTicket.StatusTicket?.Name)</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-bold text-secondary">Data de Abertura</label>
+                            <div class="p-2 bg-light rounded border">
+                                @_selectedTicket.OpenDateTime?.ToString("dd/MM/yyyy HH:mm:ss")
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-2">
+                            <label class="fw-bold text-secondary">Anexos (@_attachments.Count)</label>
+
+                            @if (_attachments.Any())
                             {
-                                <br /><a href="@ToApiUrl(tx.AttachUrl)" target="_blank">Ver Anexo</a>
+                                <div class="row g-3 mt-1">
+                                    @foreach (var attach in _attachments)
+                                    {
+                                        var a = attach?.Trim();
+                                        if (!string.IsNullOrEmpty(a))
+                                        {
+                                            <div class="col-md-4 text-center">
+                                                <div class="border rounded p-2 bg-white">
+                                                    <img src="@ToApiUrl(a)" 
+                                                         alt="Anexo do chamado" 
+                                                         class="img-fluid rounded" 
+                                                         style="max-height:180px" 
+                                                         onerror="this.onerror=null; this.src='@ProxyUrl(a)';" />
+
+                                                    <a href="@ToApiUrl(a)" target="_blank" class="btn btn-sm btn-outline-primary mt-2 w-100">
+                                                        Download
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-muted fst-italic mt-1">Sem anexos</div>
                             }
                         </div>
-                    }
+
+                    </div>
                 }
-                <div class="mb-3">
-                    <label class="form-label">Nova Mensagem</label>
-                    <textarea class="form-control" @bind="_newMessage" rows="3"></textarea>
-                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                <button type="button" class="btn btn-primary" @onclick="SendMessage">Enviar</button>
+
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
             </div>
+
         </div>
     </div>
 </div>
+
+
 
 @code {
     private List<Ticket>? _tickets;
@@ -256,7 +250,7 @@ else
         ApplySorting();
     }
 
-    private string FormatStatus(string? name) => string.Equals(name, "Em Progresso", StringComparison.OrdinalIgnoreCase) ? "Atendendo" : (name ?? "");
+    private string FormatStatus(string? name) => string.Equals(name, "Em Andamento", StringComparison.OrdinalIgnoreCase) ? "Atendendo" : (name ?? "");
     private bool IsAssigned(int ticketId) => _assignmentByTicket.TryGetValue(ticketId, out var uid) && uid.HasValue;
 
     private async Task ShowDetails(Ticket ticket)
@@ -293,7 +287,7 @@ else
                 await Js.InvokeVoidAsync("alert", $"Falha ao atribuir o chamado: {(int)resp.StatusCode}");
                 return;
             }
-            // Após atribuir, o serviço muda o status para Em Progresso, então esse chamado sai desta lista
+            // Após atribuir, o serviço muda o status para Em aNDAMENTO, então esse chamado sai desta lista
             _tickets = await Http.GetFromJsonAsync<List<Ticket>>("tickets") ?? new();
             _tickets = _tickets.Where(t => t.StatusTicket?.Name == "Aberto").ToList();
             ApplySorting();
@@ -347,7 +341,7 @@ else
             }
             catch
             {
-                // ignore and keep existing selected ticket snapshot
+                // Ignorar erros
             }
         }
     }
@@ -411,7 +405,7 @@ else
         if (_selectedTicket != null)
         {
             await Http.PutAsJsonAsync($"tickets/{_selectedTicket.Id}", _selectedTicket);
-            // Refresh ticket list
+            // Atualiza a lista de chamados
             _tickets = await Http.GetFromJsonAsync<List<Ticket>>("tickets");
             if (_tickets != null)
             {
@@ -509,10 +503,6 @@ else
             {
                 _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.Id).ToList() : _tickets.OrderByDescending(t => t.Id).ToList();
             }
-            else if (_sortColumn == "Description")
-            {
-                _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.Description).ToList() : _tickets.OrderByDescending(t => t.Description).ToList();
-            }
             else if (_sortColumn == "User")
             {
                 _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.User?.Name).ToList() : _tickets.OrderByDescending(t => t.User?.Name).ToList();
@@ -520,6 +510,18 @@ else
             else if (_sortColumn == "Department")
             {
                 _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.Department?.Name).ToList() : _tickets.OrderByDescending(t => t.Department?.Name).ToList();
+            }
+            else if (_sortColumn == "Description")
+            {
+                _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.Description).ToList() : _tickets.OrderByDescending(t => t.Description).ToList();
+            }
+            else if (_sortColumn == "Category")
+            {
+                _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.Category?.Description).ToList() : _tickets.OrderByDescending(t => t.Category?.Description).ToList();
+            }
+            else if (_sortColumn == "Priority")
+            {
+                _sortedTickets = _sortAscending ? _tickets.OrderBy(t => t.PriorityLevel).ToList() : _tickets.OrderByDescending(t => t.PriorityLevel).ToList();
             }
             else if (_sortColumn == "Status")
             {
@@ -545,7 +547,3 @@ else
         return _sortColumn == column ? "fw-bold" : string.Empty;
     }
 }
-
-<style>
-    .sortable { cursor: pointer; user-select: none; }
-</style>
