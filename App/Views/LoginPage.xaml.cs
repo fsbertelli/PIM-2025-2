@@ -32,6 +32,7 @@ public partial class LoginPage : ContentPage
             EmailEntry.Text = string.Empty;
             PasswordEntry.Text = string.Empty;
         }
+        Shell.SetNavBarIsVisible(this, true);
     }
 
     private async void OnLoginClicked(object sender, EventArgs e)
@@ -66,9 +67,14 @@ public partial class LoginPage : ContentPage
                 var resp = await _httpClient.PostAsync("/login", content);
                 if (resp.IsSuccessStatusCode)
                 {
-                    var respJson = await resp.Content.ReadAsStringAsync();
-                    // Show server response to the user as feedback
-                    await DisplayAlert("Sucesso", $"Login efetuado com sucesso.\n{respJson}", "OK");
+                    await DisplayAlert("Sucesso", "Login realizado com sucesso.", "OK");
+
+// habilita o flyout depois de logar (opcional)
+                    Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
+
+// navegação ABSOLUTA para a rota de Shell "reports" (limpa a pilha)
+                    await Shell.Current.GoToAsync("//reports");
+
 
                     var remember = RememberCheckBox.IsChecked;
                     if (remember)
@@ -81,8 +87,6 @@ public partial class LoginPage : ContentPage
                         Preferences.Remove("remember_me");
                         Preferences.Remove("saved_email");
                     }
-
-                    await Shell.Current.GoToAsync($"//{nameof(UserPage)}");
                 }
                 else if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="App.Views.RelatorioAtividadesPage"
+             Title="Atividades">
+
+    <ContentPage.Resources>
+        <Style TargetType="Border" x:Key="Card">
+            <Setter Property="StrokeShape" Value="RoundRectangle 12"/>
+            <Setter Property="StrokeThickness" Value="0"/>
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <Shadow Opacity="0.1" Radius="6" Offset="0,2"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid Padding="16" RowDefinitions="Auto,Auto,*">
+        <HorizontalStackLayout Spacing="12">
+            <Border Style="{StaticResource Card}" WidthRequest="140">
+                <VerticalStackLayout Padding="12">
+                    <Label Text="Total" FontAttributes="Bold"/>
+                    <Label x:Name="LblTotal" FontSize="24"/>
+                </VerticalStackLayout>
+            </Border>
+            <Border Style="{StaticResource Card}" WidthRequest="160">
+                <VerticalStackLayout Padding="12">
+                    <Label Text="Em aberto" FontAttributes="Bold"/>
+                    <Label x:Name="LblAbertas" FontSize="24"/>
+                </VerticalStackLayout>
+            </Border>
+            <Border Style="{StaticResource Card}" WidthRequest="160">
+                <VerticalStackLayout Padding="12">
+                    <Label Text="Concluídas" FontAttributes="Bold"/>
+                    <Label x:Name="LblFechadas" FontSize="24"/>
+                </VerticalStackLayout>
+            </Border>
+        </HorizontalStackLayout>
+
+        <HorizontalStackLayout Grid.Row="1" Spacing="8" Margin="0,12,0,0">
+            <Button Text="Atualizar" Clicked="OnRefreshClicked"/>
+            <ActivityIndicator x:Name="Busy" IsVisible="False" IsRunning="False" VerticalOptions="Center"/>
+        </HorizontalStackLayout>
+
+        <RefreshView Grid.Row="2" x:Name="Refresh" Refreshing="OnRefreshing">
+            <CollectionView x:Name="ListAtv" Margin="0,8,0,0">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource Card}" Margin="0,6,0,0">
+                            <VerticalStackLayout Padding="12" Spacing="4">
+                                <Label Text="{Binding Titulo}" FontAttributes="Bold"/>
+                                <Label Text="{Binding Tipo}" FontSize="12" Opacity="0.8"/>
+                                <HorizontalStackLayout Spacing="16">
+                                    <Label Text="{Binding Status}"/>
+                                    <Label Text="{Binding DataInicio, StringFormat='Início: {0:dd/MM HH:mm}'}" FontSize="12" Opacity="0.7"/>
+                                    <Label Text="{Binding DataFim, StringFormat='Fim: {0:dd/MM HH:mm}'}" FontSize="12" Opacity="0.7"/>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

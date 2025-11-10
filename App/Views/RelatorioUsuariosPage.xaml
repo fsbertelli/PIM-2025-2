@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="App.Views.RelatorioUsuariosPage"
+             Title="Usuários">
+
+    <ContentPage.Resources>
+        <Style TargetType="Border" x:Key="Card">
+            <Setter Property="StrokeShape" Value="RoundRectangle 12"/>
+            <Setter Property="StrokeThickness" Value="0"/>
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <Shadow Opacity="0.1" Radius="6" Offset="0,2"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid Padding="16" RowDefinitions="Auto,Auto,*">
+        <!-- KPIs -->
+        <HorizontalStackLayout Spacing="12">
+            <Border Style="{StaticResource Card}" WidthRequest="140">
+                <VerticalStackLayout Padding="12">
+                    <Label Text="Total" FontAttributes="Bold"/>
+                    <Label x:Name="LblTotal" FontSize="24"/>
+                </VerticalStackLayout>
+            </Border>
+            <Border Style="{StaticResource Card}" WidthRequest="140">
+                <VerticalStackLayout Padding="12">
+                    <Label Text="Ativos" FontAttributes="Bold"/>
+                    <Label x:Name="LblAtivos" FontSize="24"/>
+                </VerticalStackLayout>
+            </Border>
+            <Border Style="{StaticResource Card}" WidthRequest="160">
+                <VerticalStackLayout Padding="12">
+                    <Label Text="Últ. sync" FontAttributes="Bold"/>
+                    <Label x:Name="LblSync" FontSize="12" Opacity="0.7"/>
+                </VerticalStackLayout>
+            </Border>
+        </HorizontalStackLayout>
+
+        <!-- Ações -->
+        <HorizontalStackLayout Grid.Row="1" Spacing="8" Margin="0,12,0,0">
+            <Button Text="Atualizar" Clicked="OnRefreshClicked"/>
+            <ActivityIndicator x:Name="Busy" IsVisible="False" IsRunning="False" VerticalOptions="Center"/>
+        </HorizontalStackLayout>
+
+        <!-- Lista -->
+        <RefreshView Grid.Row="2" x:Name="Refresh" Refreshing="OnRefreshing">
+            <CollectionView x:Name="ListUsers" Margin="0,8,0,0">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource Card}" Margin="0,6,0,0">
+                            <VerticalStackLayout Padding="12" Spacing="4">
+                                <Label Text="{Binding Nome}" FontAttributes="Bold"/>
+                                <Label Text="{Binding Email}" FontSize="12" Opacity="0.8"/>
+                                <HorizontalStackLayout Spacing="16">
+                                    <Label Text="{Binding Status}"/>
+                                    <Label Text="{Binding UltimoAcesso, StringFormat='Último acesso: {0:dd/MM HH:mm}'}" FontSize="12" Opacity="0.7"/>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

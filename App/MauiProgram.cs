@@ -30,6 +30,8 @@ public static class MauiProgram
         builder.Services.AddTransient<CreateUser>();
         builder.Services.AddTransient<SettingsPage>();
         builder.Services.AddTransient<LoginPage>();
+        builder.Services.AddTransient<HomePage>();
+        builder.Services.AddTransient<RelatoriosPage>();
 
         return builder.Build();
 	}

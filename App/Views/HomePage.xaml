@@ -3,12 +3,25 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="App.Views.HomePage"
              Title="Home">
+
     <ScrollView>
         <VerticalStackLayout Spacing="15" Padding="20">
-            <Label Text="Bem-vindo" FontSize="Large" HorizontalOptions="Center" />
+
+            <Label Text="Bem-vindo"
+                   FontSize="Large"
+                   HorizontalOptions="Center" />
+
             <Label Text="Esta é a página inicial." />
-            <Button Text="Ver Usuários" Clicked="OnViewUsersClicked" />
+
+            <Button Text="Ver Usuários"
+                    Clicked="OnViewUsersClicked" />
+
+            <!-- Novo botão de Relatórios -->
+            <Button Text="Relatórios"
+                    Clicked="OnRelatoriosClicked"
+                    BackgroundColor="#0078D7"
+                    TextColor="White" />
+
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
-
