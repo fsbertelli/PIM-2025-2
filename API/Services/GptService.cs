@@ -40,7 +40,7 @@ public class GptService : IGptService
 
     public Task<string> CategorizeAsync(string text)
     {
-        var prompt = "Você é um sistema de triagem de chamados internos de TI. Classifique o chamado exclusivamente em uma das seguintes categorias: hardware, software, rede, acesso, impressora, e-mail, sistema corporativo, desempenho, segurança, outro. Responda somente com a categoria.";
+        var prompt = "Você é um sistema de triagem de chamados internos de TI. Classifique o chamado exclusivamente em uma das seguintes categorias: Hardware, Software, Rede, Acesso, Impressora, E-mail, Sistema Corporativo, Desempenho, Segurança, Outro, Injúria Racial ou Homofobia. Responda somente com a categoria.\n";
         return PostPromptAsync(prompt, text).ContinueWith(t => t.Result.ToLowerInvariant());
     }
 

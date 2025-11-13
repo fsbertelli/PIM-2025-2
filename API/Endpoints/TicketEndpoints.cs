@@ -40,8 +40,8 @@ public static class TicketEndpoints
 
                 var allowed = new HashSet<string>(new[]
                 {
-                    "hardware", "software", "rede", "acesso", "impressora", "e-mail", "sistema corporativo",
-                    "desempenho", "segurança", "outro"
+                    "Hardware", "Software", "Rede", "Acesso", "Impressora", "E-mail", "Sistema Corporativo",
+                    "Desempenho", "Segurança", "Outro", "Injúria Racial", "Homofobia"
                 }, StringComparer.OrdinalIgnoreCase);
 
                 string? categoryName = null;
@@ -165,12 +165,9 @@ public static class TicketEndpoints
 
                 // Prefer explicit 'Em andamento' status; accept legacy names as fallback
                 var inProgressStatusIds = await db.StatusTickets
-                    .Where(s => s.Name == "Em andamento" || s.Name == "Em Progresso" || s.Name == "Atendendo")
+                    .Where(s => s.Name == "Em andamento")
                     .Select(s => s.Id)
                     .ToListAsync();
-
-                // If we have defined 'in progress' statuses, return only tickets with those statuses.
-                // Otherwise, fall back to the previous behavior (exclude 'Fechado').
 
                 var q = db.Tickets
                     .Include(t => t.User)
@@ -191,7 +188,7 @@ public static class TicketEndpoints
 
                 var tickets = await q.ToListAsync();
 
-                // Build mapping of last assignment per ticket (we already computed lastAssignments above)
+                // Faz o mapeamento dos usuários atribuídos
                 var assignMap = lastAssignments.ToDictionary(a => a.TicketId, a => a.UserTargetId);
                 var assignedUserIds = assignMap.Values.Where(id => id.HasValue).Select(id => id!.Value).Distinct()
                     .ToList();
@@ -208,7 +205,7 @@ public static class TicketEndpoints
                         assignedUser = new { id = uu.Id, name = uu.Name, email = uu.Email };
                     }
 
-                    // normalize status name for UI
+                    // normaliza o nome do status "Em andamento"
                     var statusName = t.StatusTicket?.Name;
                     if (!string.IsNullOrWhiteSpace(statusName) && (
                             string.Equals(statusName, "Em andamento", StringComparison.OrdinalIgnoreCase)))
@@ -258,7 +255,7 @@ public static class TicketEndpoints
                             ? null
                             : new
                             {
-                                id = t.Category.Id, name = t.Category.Description, deptId = t.Category.DeptId,
+                                id = t.Category.Id, description = t.Category.Description, deptId = t.Category.DeptId,
                                 department = t.Category.Department == null
                                     ? null
                                     : new { id = t.Category.Department.Id, name = t.Category.Department.Name }
@@ -367,7 +364,7 @@ public static class TicketEndpoints
                         ? null
                         : new
                         {
-                            id = item.Category.Id, name = item.Category.Description, deptId = item.Category.DeptId
+                            id = item.Category.Id, description = item.Category.Description, deptId = item.Category.DeptId
                         },
                     openDateTime = item.OpenDateTime,
                     statusId = item.StatusId,
@@ -514,7 +511,7 @@ public static class TicketEndpoints
 
                 var tickets = await q.OrderByDescending(t => t.OpenDateTime).ToListAsync();
 
-                // get last assignment per ticket
+                // pega a última atribuição de usuário para cada ticket
                 var ticketIds = tickets.Select(t => t.Id).ToList();
                 var lastAssignments = await db.TicketTransactions
                     .Where(tt => ticketIds.Contains(tt.TicketId) && tt.UserTargetId != null)
@@ -584,7 +581,7 @@ public static class TicketEndpoints
                             ? null
                             : new
                             {
-                                id = t.Category.Id, name = t.Category.Description, deptId = t.Category.DeptId,
+                                id = t.Category.Id, description = t.Category.Description, deptId = t.Category.DeptId,
                                 department = t.Category.Department == null
                                     ? null
                                     : new { id = t.Category.Department.Id, name = t.Category.Department.Name }
