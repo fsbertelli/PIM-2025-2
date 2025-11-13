@@ -64,10 +64,9 @@ public class TicketTransactionService : ITicketTransactionService
                 throw new InvalidOperationException("Failed to save attachment.");
         }
 
-        // When assigning a ticket (UserTargetId present), set status to 'Em andamento' (preferred)
+        // Quando há um usuário destino, o status do ticket deve ser atualizado para "Em andamento"
         if (request.UserTargetId.HasValue)
         {
-            // Ensure a canonical 'Em andamento' status exists, create if missing
             var inProgress = await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Em andamento");
             if (inProgress == null)
             {
@@ -136,7 +135,6 @@ public class TicketTransactionService : ITicketTransactionService
 
         if (userTargetId.HasValue)
         {
-            // Ensure canonical 'Em andamento' status exists, create if missing
             var inProgress = await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Em andamento");
             if (inProgress == null)
             {

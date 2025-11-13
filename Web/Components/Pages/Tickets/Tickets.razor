@@ -58,8 +58,15 @@ else
                         <td class="text-center">@ticket.Id</td>
                         <td class="text-center">@ticket.User?.Name</td>
                         <td class="text-center">@ticket.Department?.Name</td>
-                        <td class="text-center">@ticket.Description</td>
-                        <td class="text-center">@ticket.Category?.Description</td>
+                        <td class="text-center">
+                            @if(ticket.Category?.Description is "Injúria Racial" or "Homofobia")
+                            {
+                                <span class="text-danger fw-bold">Conteúdo impróprio</span>
+                            } else {
+                                @ticket.Description
+                            }
+                        </td>
+                        <td class="text-center">@ticket.Category?.Description.ToString()</td>
                         @{
                             var priority = ticket.PriorityLevel.ToString();
                             var priorityValue = priority.ToLowerInvariant();
@@ -90,14 +97,27 @@ else
                         <td class="text-center">@ticket.OpenDateTime?.ToString("dd/MM/yyyy HH:mm:ss")</td>
                         <td class="text-center text-nowrap">
                             <div class="d-flex justify-content-center align-items-center">
-                                <button class="btn btn-outline-warning btn-sm me-1" @onclick="() => ShowDetails(ticket)" title="Detalhes">
-                                    <i class="bi bi-eye"></i> Detalhes
-                                </button>
-                                @if (!IsAssigned(ticket.Id))
+                                @if (ticket.Category?.Description == "Injúria Racial" || ticket.Category?.Description == "Homofobia")
                                 {
-                                    <button class="btn btn-outline-success btn-sm" @onclick="() => AssignTicket(ticket)" title="Atribuir">
-                                        <i class="bi bi-person-plus"></i> Atribuir
+                                    @if (!string.Equals(ticket.StatusTicket?.Name, "Fechado", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm" @onclick="async () => { await AssignTicket(ticket); await CloseTicket(ticket); }" title="Fechar">
+                                            <i class="bi bi-check2-circle"></i> Fechar
+                                        </button>
+                                    }
+                                }
+                                else
+                                {
+                                    <button class="btn btn-outline-warning btn-sm me-1" @onclick='() => ShowDetails(ticket)' title="Detalhes">
+                                        <i class="bi bi-eye"></i> Detalhes
                                     </button>
+
+                                    @if (!IsAssigned(ticket.Id))
+                                    {
+                                        <button class="btn btn-outline-success btn-sm" @onclick='() => AssignTicket(ticket)' title="Atribuir">
+                                            <i class="bi bi-person-plus"></i> Atribuir
+                                        </button>
+                                    }
                                 }
                             </div>
                         </td>
@@ -201,7 +221,7 @@ else
             </div>
 
             <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-outline-secondaryw" data-bs-dismiss="modal">Fechar</button>
             </div>
 
         </div>
@@ -400,71 +420,6 @@ else
         }
     }
 
-    private async Task UpdateTicket()
-    {
-        if (_selectedTicket != null)
-        {
-            await Http.PutAsJsonAsync($"tickets/{_selectedTicket.Id}", _selectedTicket);
-            // Atualiza a lista de chamados
-            _tickets = await Http.GetFromJsonAsync<List<Ticket>>("tickets");
-            if (_tickets != null)
-            {
-                _tickets = _tickets.Where(t => t.StatusTicket?.Name == "Aberto").ToList();
-            }
-            ApplySorting();
-        }
-    }
-
-    private async Task AssignToUser()
-    {
-        if (_selectedTicket != null && int.TryParse(_selectedUserId, out var userId))
-        {
-            var currentUserId = await GetCurrentUserIdAsync();
-            if (currentUserId == null)
-            {
-                await Js.InvokeVoidAsync("alert", "Não foi possível identificar o usuário logado. Faça login novamente.");
-                return;
-            }
-
-            var tx = new {
-                UserSourceId = currentUserId.Value,
-                UserTargetId = userId,
-                Body = $"Chamado atribuído ao técnico #{userId}.",
-                TicketId = _selectedTicket.Id,
-                CreatedAt = DateTime.UtcNow
-            };
-            await Http.PostAsJsonAsync("tickettransactions", tx);
-            _tickets = await Http.GetFromJsonAsync<List<Ticket>>("tickets") ?? new();
-            _tickets = _tickets.Where(t => t.StatusTicket?.Name == "Aberto").ToList();
-            ApplySorting();
-        }
-    }
-
-    private async Task SendMessage()
-    {
-        if (_selectedTicket != null && !string.IsNullOrEmpty(_newMessage))
-        {
-            var currentUserId = await GetCurrentUserIdAsync();
-            if (currentUserId == null)
-            {
-                await Js.InvokeVoidAsync("alert", "Não foi possível identificar o usuário logado. Faça login novamente.");
-                return;
-            }
-
-            var tx = new
-            {
-                UserSourceId = currentUserId.Value,
-                UserTargetId = (int?)null,
-                Body = _newMessage,
-                TicketId = _selectedTicket.Id,
-                CreatedAt = DateTime.UtcNow
-            };
-            await Http.PostAsJsonAsync("tickettransactions", tx);
-            _newMessage = "";
-            await LoadTransactions();
-        }
-    }
-
     private async Task<int?> GetCurrentUserIdAsync()
     {
         try
@@ -545,5 +500,49 @@ else
     private string GetIndicatorClass(string column)
     {
         return _sortColumn == column ? "fw-bold" : string.Empty;
+    }
+    
+    
+    private async Task CloseTicket(Ticket ticket)
+    {
+        try
+        {
+            var statuses = await Http.GetFromJsonAsync<List<StatusTicketDto>>("statustickets") ?? new();
+            var closed = statuses.FirstOrDefault(s => string.Equals(s.Name, "Fechado", StringComparison.OrdinalIgnoreCase));
+            if (closed == null)
+            {
+                await Js.InvokeVoidAsync("alert", "Status 'Fechado' não encontrado.");
+                return;
+            }
+
+            ticket.StatusId = closed.Id;
+            ticket.StatusTicket = closed; // atualiza o objeto de status localmente
+
+            var resp = await Http.PutAsJsonAsync($"tickets/{ticket.Id}", ticket);
+            if (!resp.IsSuccessStatusCode)
+            {
+                await Js.InvokeVoidAsync("alert", $"Falha ao fechar o chamado: {(int)resp.StatusCode}");
+                return;
+            }
+
+            // Remove o chamado da lista de abertos e atualiza a exibição
+            if (_tickets != null)
+            {
+                _tickets = _tickets.Where(t => t.Id != ticket.Id).ToList();
+                ApplySorting();
+                StateHasChanged();
+            }
+
+            // se estiver visualizando detalhes do mesmo chamado, atualiza também
+            if (_selectedTicket != null && _selectedTicket.Id == ticket.Id)
+            {
+                _selectedTicket.StatusId = ticket.StatusId;
+                _selectedTicket.StatusTicket = ticket.StatusTicket;
+            }
+        }
+        catch (Exception ex)
+        {
+            await Js.InvokeVoidAsync("alert", $"Erro ao fechar chamado: {ex.Message}");
+        }
     }
 }
