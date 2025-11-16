@@ -9,7 +9,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var name = await Js.InvokeAsync<string>("localStorage.getItem", "savedName");
+        var name = await Js.InvokeAsync<string>("localStorage.getItem", "savedEmail");
         if (_userName != name)
         {
             _userName = name;

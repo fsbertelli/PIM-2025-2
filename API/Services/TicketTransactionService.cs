@@ -64,11 +64,17 @@ public class TicketTransactionService : ITicketTransactionService
                 throw new InvalidOperationException("Failed to save attachment.");
         }
 
-        // If assigning a target, move ticket to In Progress ("Em Progresso")
+        // Quando há um usuário destino, o status do ticket deve ser atualizado para "Em andamento"
         if (request.UserTargetId.HasValue)
         {
-            var inProgress = await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Em Progresso")
-                              ?? await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Atendendo");
+            var inProgress = await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Em andamento");
+            if (inProgress == null)
+            {
+                inProgress = new Models.StatusTicket { Name = "Em andamento" };
+                db.StatusTickets.Add(inProgress);
+                await db.SaveChangesAsync();
+                inProgress = await db.StatusTickets.FirstAsync(s => s.Name == "Em andamento");
+            }
             if (inProgress != null && ticket.StatusId != inProgress.Id)
             {
                 ticket.StatusId = inProgress.Id;
@@ -127,11 +133,16 @@ public class TicketTransactionService : ITicketTransactionService
         if (ticket is null)
             throw new ArgumentException("Ticket inválido: " + ticketId);
 
-        // If assigning a target, move ticket to In Progress ("Em Progresso")
         if (userTargetId.HasValue)
         {
-            var inProgress = await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Em Progresso")
-                              ?? await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Atendendo");
+            var inProgress = await db.StatusTickets.FirstOrDefaultAsync(s => s.Name == "Em andamento");
+            if (inProgress == null)
+            {
+                inProgress = new Models.StatusTicket { Name = "Em andamento" };
+                db.StatusTickets.Add(inProgress);
+                await db.SaveChangesAsync();
+                inProgress = await db.StatusTickets.FirstAsync(s => s.Name == "Em andamento");
+            }
             if (inProgress != null && ticket.StatusId != inProgress.Id)
             {
                 ticket.StatusId = inProgress.Id;
@@ -158,5 +169,3 @@ public class TicketTransactionService : ITicketTransactionService
         return entity;
     }
 }
-
-// ...existing code...

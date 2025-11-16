@@ -37,10 +37,8 @@ public partial class LoginPage : ContentPage
 
     private async void OnLoginClicked(object sender, EventArgs e)
     {
-        // Hide previous error
         ErrorLabel.IsVisible = false;
 
-        // Disable UI while request is in-flight
         LoginButton.IsEnabled = false;
         LoginActivity.IsRunning = true;
         LoginActivity.IsVisible = true;
@@ -74,7 +72,6 @@ public partial class LoginPage : ContentPage
 
 // navegação ABSOLUTA para a rota de Shell "reports" (limpa a pilha)
                     await Shell.Current.GoToAsync("//reports");
-
 
                     var remember = RememberCheckBox.IsChecked;
                     if (remember)

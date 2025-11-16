@@ -18,10 +18,7 @@ public class User
     public string? Email { get; set; }
 
     [PasswordPropertyText]
-    [Required(ErrorMessage = "A senha é obrigatória.")]
-    // A propriedade 'Password' é mapeada para a coluna do banco chamada "Password".
-    [Column("Password")]
-    [StringLength(64, ErrorMessage = "O hash da senha deve ter no máximo 64 caracteres.")]
+    [Required(ErrorMessage = "A senha é obrigatória.")] 
     public string? Password { get; set; }
     
     [ForeignKey("Department")]

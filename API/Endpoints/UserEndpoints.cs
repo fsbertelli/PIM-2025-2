@@ -10,119 +10,133 @@ public static class UserEndpoints
 {
     public static void MapUserEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/users", async (CreateUserDto dto, AppDbContext db) =>
+        // Helpers locais
+        static UserDto BuildUserDto(User user)
         {
-            try
-            {
-                var serialized = System.Text.Json.JsonSerializer.Serialize(dto);
-                Console.WriteLine($"DEBUG POST /users -> received DTO: {serialized}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"DEBUG POST /users -> failed to serialize dto: {ex.Message}");
-            }
-
-            var department = await db.Departments.FindAsync(dto.DeptId);
-            var userStatus = await db.UserStatus.FindAsync(dto.UserStatusId);
-            var userProfile = await db.UserProfiles.FindAsync(dto.ProfileId);
-            
-            if (department is null || userStatus is null  || userProfile is null)
-            {
-                return Results.BadRequest("Departamento, Status ou Perfil inválido.");
-            }
-
-            if (string.IsNullOrEmpty(dto.Password))
-            {
-                return Results.BadRequest("Senha é obrigatória.");
-            }
-
-            var normalizedEmail = dto.Email?.Trim().ToLowerInvariant();
-            if (string.IsNullOrEmpty(normalizedEmail))
-            {
-                return Results.BadRequest("Email é obrigatório.");
-            }
-
-            var exists = await db.Users.AnyAsync(u => u.Email != null && u.Email.ToLower() == normalizedEmail);
-            if (exists)
-            {
-                return Results.Conflict(new { Message = "Email já cadastrado." });
-            }
-             
-             var user = new User
-             {
-                 Name = dto.Name,
-                Email = normalizedEmail,
-                 Password = PasswordService.HashPassword(dto.Password),
-                 DeptId = dto.DeptId,
-                 Department = department,
-                 UserStatusId = dto.UserStatusId,
-                 UserStatus = userStatus,
-                 ProfileId = dto.ProfileId,
-                 UserProfile = userProfile
-             };
-            db.Users.Add(user);
-            await db.SaveChangesAsync();
-
-            var userDto = new UserDto
+            return new UserDto
             {
                 Id = user.Id,
                 Name = user.Name,
                 Email = user.Email,
-                Department = new DepartmentDto { Id = department.Id, Name = department.Name },
-                UserStatus = new UserStatusDto { Id = userStatus.Id, Name = userStatus.Name },
-                UserProfile = new UserProfileDto { Id = userProfile.Id, Name = userProfile.Name }
+                Department = user.Department is null ? null : new DepartmentDto { Id = user.Department.Id, Name = user.Department.Name },
+                UserStatus = user.UserStatus is null ? null : new UserStatusDto { Id = user.UserStatus.Id, Name = user.UserStatus.Name },
+                UserProfile = user.UserProfile is null ? null : new UserProfileDto { Id = user.UserProfile.Id, Name = user.UserProfile.Name }
+            };
+        }
+
+        static async Task<(Department? dept, UserStatus? status, UserProfile? profile)> FindRelatedSequentialAsync(AppDbContext db, int deptId, int statusId, int profileId)
+        {
+            var department = await db.Departments.FindAsync(deptId);
+            var status = await db.UserStatus.FindAsync(statusId);
+            var profile = await db.UserProfiles.FindAsync(profileId);
+            
+            return (department, status, profile);
+
+        }
+
+        app.MapPost("/users", async (CreateUserDto dto, AppDbContext db) =>
+        {
+            var (department, userStatus, userProfile) = await FindRelatedSequentialAsync(db, dto.DeptId, dto.UserStatusId, dto.ProfileId);
+            if (department is null || userStatus is null || userProfile is null)
+                return Results.BadRequest(new { Message = "Departamento, Status ou Perfil inválido." });
+
+            if (string.IsNullOrEmpty(dto.Password))
+                return Results.BadRequest(new { Message = "Senha é obrigatória." });
+
+            var normalizedEmail = dto.Email?.Trim().ToLowerInvariant();
+            if (string.IsNullOrEmpty(normalizedEmail))
+                return Results.BadRequest(new { Message = "Email é obrigatório." });
+
+            var exists = await db.Users.AnyAsync(u => u.Email != null && u.Email.ToLower() == normalizedEmail);
+            if (exists)
+                return Results.Conflict(new { Message = "Email já cadastrado." });
+
+            var user = new User
+            {
+                Name = dto.Name,
+                Email = normalizedEmail,
+                Password = PasswordService.HashPassword(dto.Password),
+                DeptId = dto.DeptId,
+                Department = department,
+                UserStatusId = dto.UserStatusId,
+                UserStatus = userStatus,
+                ProfileId = dto.ProfileId,
+                UserProfile = userProfile
             };
 
+            db.Users.Add(user);
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                return Results.Conflict(new { Message = "Não foi possível criar o usuário devido a conflito de dados." });
+            }
+            catch (Exception)
+            {
+                return Results.Problem(detail: "Erro interno ao criar usuário.", statusCode: 500);
+            }
+
+            var userDto = BuildUserDto(user);
             return Results.Created($"/users/{user.Id}", userDto);
         })
         .WithName("CreateUser")
         .Produces(201)
+        .Produces(400)
+        .Produces(409)
+        .Produces(500)
         .Produces(401);
 
         app.MapPut("/users/{id}", async (int id, UpdateUserDto dto, AppDbContext db) =>
         {
             var user = await db.Users.FindAsync(id);
-            if (user is null) return Results.NotFound("Usuário não encontrado.");
+            if (user is null) return Results.NotFound(new { Message = "Usuário não encontrado." });
 
-            var department = await db.Departments.FindAsync(dto.DeptId);
-            var userStatus = await db.UserStatus.FindAsync(dto.UserStatusId);
-            var userProfile = await db.UserProfiles.FindAsync(dto.ProfileId);
-
-            Console.WriteLine($"PUT /users/{{id}} => id: {id}, email: {dto.Email}, deptId: {dto.DeptId}, userStatusId: {dto.UserStatusId}, profileId: {dto.ProfileId}");
-            Console.WriteLine($"Departamentos encontrados: {(department != null)}, Status encontrados: {(userStatus != null)}, Perfil encontrado: {(userProfile != null)}");
-
+            var (department, userStatus, userProfile) = await FindRelatedSequentialAsync(db, dto.DeptId, dto.UserStatusId, dto.ProfileId);
             if (department is null || userStatus is null || userProfile is null)
-                return Results.BadRequest("Departamento, Status ou Perfil inválido.");
+                return Results.BadRequest(new { Message = "Departamento, Status ou Perfil inválido." });
 
             var normalizedNewEmail = dto.Email?.Trim().ToLowerInvariant();
             if (string.IsNullOrEmpty(normalizedNewEmail))
-            {
-                return Results.BadRequest("Email é obrigatório.");
-            }
+                return Results.BadRequest(new { Message = "Email é obrigatório." });
+
             if (!string.Equals(user.Email, normalizedNewEmail, StringComparison.OrdinalIgnoreCase))
             {
                 var conflict = await db.Users.AnyAsync(u => u.Id != id && u.Email != null && u.Email.ToLower() == normalizedNewEmail);
                 if (conflict)
-                {
                     return Results.Conflict(new { Message = "Email já cadastrado por outro usuário." });
-                }
+
                 user.Email = normalizedNewEmail;
+                db.Entry(user).Property(u => u.Email).IsModified = true;
             }
-             if (!string.IsNullOrEmpty(dto.Password))
-             {
-                 user.Password = PasswordService.HashPassword(dto.Password);
-             }
+
+            if (!string.IsNullOrEmpty(dto.Password))
+            {
+                user.Password = PasswordService.HashPassword(dto.Password);
+                db.Entry(user).Property(u => u.Password).IsModified = true;
+            }
+
             user.DeptId = dto.DeptId;
             user.UserStatusId = dto.UserStatusId;
             user.ProfileId = dto.ProfileId;
-
-            db.Entry(user).Property(u => u.Email).IsModified = true;
-            if (!string.IsNullOrEmpty(dto.Password)) db.Entry(user).Property(u => u.Password).IsModified = true;
             db.Entry(user).Property(u => u.DeptId).IsModified = true;
             db.Entry(user).Property(u => u.UserStatusId).IsModified = true;
             db.Entry(user).Property(u => u.ProfileId).IsModified = true;
 
-            await db.SaveChangesAsync();
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                return Results.Conflict(new { Message = "Não foi possível atualizar o usuário devido a conflito de dados." });
+            }
+            catch (Exception)
+            {
+                return Results.Problem(detail: "Erro interno ao atualizar usuário.", statusCode: 500);
+            }
+
             return Results.Ok(new
             {
                 id = user.Id,
@@ -134,8 +148,11 @@ public static class UserEndpoints
             });
         })
         .WithName("UpdateUser")
-        .Produces(204)
+        .Produces(200)
+        .Produces(400)
         .Produces(404)
+        .Produces(409)
+        .Produces(500)
         .Produces(401);
 
         app.MapDelete("/users/{id}", async (int id, AppDbContext db) =>
@@ -146,26 +163,31 @@ public static class UserEndpoints
                 .Include(u => u.UserProfile)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
-            if (user is null) return Results.NotFound("Usuário não encontrado.");
+            if (user is null) return Results.NotFound(new { Message = "Usuário não encontrado." });
 
             db.Users.Remove(user);
-            await db.SaveChangesAsync();
 
-            var userDto = new UserDto
+            try
             {
-                Id = user.Id,
-                Name = user.Name,
-                Email = user.Email,
-                Department = user.Department is null ? null : new DepartmentDto { Id = user.Department.Id, Name = user.Department.Name },
-                UserStatus = user.UserStatus is null ? null : new UserStatusDto { Id = user.UserStatus.Id, Name = user.UserStatus.Name },
-                UserProfile = user.UserProfile is null ? null : new UserProfileDto { Id = user.UserProfile.Id, Name = user.UserProfile.Name }
-            };
-
-            return Results.Ok(userDto);
+                await db.SaveChangesAsync();
+                var userDto = BuildUserDto(user);
+                return Results.Ok(userDto);
+            }
+            catch (DbUpdateException ex)
+            {
+                var error = ex.GetBaseException() as Microsoft.Data.SqlClient.SqlException;
+                if (error != null && (error.Number == 547 || error.Number == 1451))
+                {
+                    return Results.Conflict(new { Message = "Não é possível excluir o usuário porque ele está associado a outros registros." });
+                }
+                return Results.Problem(detail: ex.GetBaseException()?.Message ?? ex.Message, statusCode: 500);
+            }
         })
         .WithName("DeleteUser")
         .Produces(200)
         .Produces(404)
+        .Produces(409)
+        .Produces(500)
         .Produces(401);
 
         app.MapPost("/login", async (LoginRequest request, AppDbContext db) =>
@@ -189,19 +211,13 @@ public static class UserEndpoints
                 return Results.Unauthorized();
             }
 
-            var userDto = new UserDto
-            {
-                Id = user.Id,
-                Name = user.Name,
-                Email = user.Email,
-                Department = user.Department != null ? new DepartmentDto { Id = user.Department.Id, Name = user.Department.Name } : null,
-                UserStatus = user.UserStatus != null ? new UserStatusDto { Id = user.UserStatus.Id, Name = user.UserStatus.Name } : null,
-                UserProfile = user.UserProfile != null ? new UserProfileDto { Id = user.UserProfile.Id, Name = user.UserProfile.Name } : null
-            };
+            var userDto = BuildUserDto(user);
             return Results.Ok(userDto);
         })
         .WithName("Login")
         .Produces(200)
-        .Produces(401);
+        .Produces(400)
+        .Produces(401)
+        .Produces(500);
     }
 }

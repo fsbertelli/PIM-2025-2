@@ -1,24 +1,19 @@
-﻿// ...existing code...
-using System;
-
-namespace API.Models.DTO;
+﻿namespace API.Models.DTO;
 
 public class CreateTicketSimpleDto
 {
-    // Id do usuário que está abrindo o chamado. If you have authenticated user, you can ignore this and use the auth user id instead.
+    // Id do usuário (autenticado) que está abrindo o chamado.
     public int UserSourceId { get; set; }
 
-    // Optional textual description / message to be stored in the ticket and as the initial transaction body
+    // Descrição / corpo da mensagem no chat
     public string? Body { get; set; }
 
-    // Optional base64-encoded attachment (data URI or raw base64)
+    // Base64 do anexo
     public string? AttachBase64 { get; set; }
 
-    // Optional department target id. If provided, the service will attempt to use this department (must exist and accept tickets).
+    // ID do departamento - bollean acceptTicket.
     public int? DeptTargetId { get; set; }
 
-    // NOTE: Priority is not provided by the mobile user; it is set by the server/triage team.
-    // public int? PriorityLevel { get; set; }
+    //Nao adicionar categoria nem prioridade aqui (deixar para a IA)
 }
 
-// ...existing code...

@@ -14,7 +14,7 @@ public static class TicketTransactionEndpoints
     {
         app.MapGet("/tickettransactions", async (AppDbContext db) =>
         {
-            // Load entities with navigations first, then map in-memory to avoid EF translation issues
+
             var entities = await db.TicketTransactions
                 .Include(tt => tt.UserSource).ThenInclude(u => u.Department)
                 .Include(tt => tt.UserSource).ThenInclude(u => u.UserStatus)
@@ -214,8 +214,8 @@ public static class TicketTransactionEndpoints
             try
             {
                 var entity = await transactionService.CreateTransactionAsync(request, db, env);
-
-                // map to DTO
+                
+                //Instancia o DTO
                 var createdDto = new TicketTransactionDto
                 {
                     Id = entity.Id,
@@ -276,20 +276,20 @@ public static class TicketTransactionEndpoints
         .Produces(400)
         .Produces(401);
 
-        // Multipart upload endpoint (for mobile clients)
+        // Endpoint para upload de imagem (Mobile) - wwwroot
         app.MapPost("/tickettransactions/upload", async (HttpRequest request, IFormFile? file, [FromForm] int userSourceId, [FromForm] int? userTargetId, [FromForm] int ticketId, [FromForm] string? body, AppDbContext db, IWebHostEnvironment env, IFileStorageService fileStorage, ITicketTransactionService transactionService) =>
         {
             try
             {
-                // save file if provided
+                // salva a imagem
                 string? attachUrl = null;
                 if (file is not null && file.Length > 0)
                 {
-                    // validate size
+                    // valida o tamanho máximo (5mb)
                     const long maxBytes = 5 * 1024 * 1024;
                     if (file.Length > maxBytes) return Results.BadRequest($"Arquivo muito grande. Máximo permitido: {maxBytes} bytes.");
 
-                    // basic content type validation
+                    // valida a extensão
                     var allowed = new[] { "image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp" };
                     if (!allowed.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
                         return Results.BadRequest("Tipo de arquivo não permitido. Apenas imagens (png, jpeg, gif, webp).");
@@ -361,8 +361,7 @@ public static class TicketTransactionEndpoints
         .Produces(400)
         .DisableAntiforgery();
 
-        // Require GUID constraint here as well to avoid accidental matching of literal
-        // route names like "upload".
+        //Provavelmente sem uso (verificar LGPD) - mas como trafega o DTO não tem senha exposta
         app.MapDelete("/tickettransactions/{id:guid}", async (Guid id, AppDbContext db) =>
         {
             var item = await db.TicketTransactions.FindAsync(id);
@@ -370,7 +369,7 @@ public static class TicketTransactionEndpoints
             db.TicketTransactions.Remove(item);
             await db.SaveChangesAsync();
 
-            // return DTO (no password exposure)
+            //retorna o DTO sem senha
             var removedDto = new TicketTransactionDto
             {
                 Id = item.Id,
@@ -401,5 +400,6 @@ public static class TicketTransactionEndpoints
         .WithName("GetTicketAttachments")
         .Produces(200)
         .Produces(401);
+        
     }
 }
