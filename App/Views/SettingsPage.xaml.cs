@@ -6,6 +6,7 @@ public partial class SettingsPage : ContentPage
 {
     private readonly SettingsService _settingsService;
 
+    public SettingsPage() : this(ServiceHelper.GetService<SettingsService>()) { }
     public SettingsPage(SettingsService settingsService)
     {
         InitializeComponent();

@@ -26,6 +26,7 @@ public partial class CreateUser : ContentPage
             }
         }
     }
+    public CreateUser() : this(ServiceHelper.GetService<UserService>()) { }
 
     public CreateUser(UserService userService)
     {

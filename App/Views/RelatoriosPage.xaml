@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="App.Views.RelatoriosPage"
+             Title="Relatórios">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="16" Padding="20">
+
+            <Label Text="Relatórios"
+                   FontSize="Title"
+                   HorizontalOptions="Center" />
+
+            <Label Text="Escolha um relatório para visualizar:"
+                   FontSize="Medium" />
+
+            <!-- Cartão: Relatório de Usuários -->
+            <Frame HasShadow="True" CornerRadius="12" Padding="16">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Relatório de Usuários" FontAttributes="Bold" />
+                    <Label Text="Resumo de cadastros, status e acessos." FontSize="Small" />
+                    <Button Text="Abrir"
+                            Clicked="OnRelatorioUsuariosClicked" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Cartão: Relatório de Atividades -->
+            <Frame HasShadow="True" CornerRadius="12" Padding="16">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Relatório de Atividades" FontAttributes="Bold" />
+                    <Label Text="Jornadas, OS e eventos por período." FontSize="Small" />
+                    <Button Text="Abrir"
+                            Clicked="OnRelatorioAtividadesClicked" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Exemplo: Botão genérico para um futuro relatório -->
+            <Button Text="Relatório (personalizado)"
+                    Clicked="OnRelatorioPersonalizadoClicked"
+                    BackgroundColor="#0078D7"
+                    TextColor="White" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
