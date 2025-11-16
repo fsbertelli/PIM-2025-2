@@ -18,4 +18,10 @@ public partial class HomePage : ContentPage
             try { await DisplayAlert("Navegação", "Não foi possível navegar para UserPage.", "OK"); } catch { }
         }
     }
+    private async void OnRelatoriosClicked(object sender, EventArgs e)
+    {
+        // Exemplo: navegar para a página de relatórios
+        await Navigation.PushAsync(new RelatoriosPage());
+    }
+
 }
