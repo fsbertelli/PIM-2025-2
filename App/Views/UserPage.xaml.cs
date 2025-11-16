@@ -8,6 +8,7 @@ public partial class UserPage : ContentPage
 {
     private readonly UserService _userService;
 
+    public UserPage() : this(ServiceHelper.GetService<UserService>()) { }
     public UserPage(UserService userService)
     {
         InitializeComponent();
