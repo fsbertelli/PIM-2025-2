@@ -2,7 +2,7 @@
 
 Descrição
 ---------
-PIM-2025-2 é uma solução .NET 9 organizada como uma solução única (PIM.sln) com uma API REST em C# (pasta `API`) e uma aplicação cliente MAUI desktop (pasta `App`). Há um projeto de testes (`API.Tests`) e recursos estáticos/frontend em `Web`. Este README contém instruções concretas para clonar, configurar, compilar, executar e contribuir no repositório.
+PIM-2025-2 é uma solução .NET 9 organizada como uma solução única (PIM.sln) com uma API REST em C# (pasta `API`) e uma aplicação cliente MAUI desktop (pasta `App`). Há um projeto de testes (`API.Tests`) e um projeto em `Blazor Server`. Este README contém instruções concretas para clonar, configurar, compilar, executar e contribuir no repositório.
 
 Visão geral da estrutura
 ------------------------
